@@ -1,0 +1,41 @@
+<div class="nav">
+  <div class="artwork-nav">
+
+    {{#nav-section currentPath=currentPath path='artwork'}}
+      {{#link-to 'artwork' classNames="parent-link artwork"}}Artwork{{/link-to}}
+      <div class="links">
+        {{#each artworkCategory in artworkCategories}}
+          {{#link-to 'artwork.category' artworkCategory.slug}}{{artworkCategory.name}}{{/link-to}}
+        {{/each}}
+      </div>
+    {{/nav-section}}
+    <div class="border artwork"></div>
+
+    {{#nav-section currentPath=currentPath path='books'}}
+      {{#link-to 'books' classNames="parent-link books"}}Books{{/link-to}}
+      <div class="links">
+        {{#each book in books}}
+          {{#link-to 'books.show' book.slug}}{{book.title}}{{/link-to}}
+        {{/each}}
+      </div>
+    {{/nav-section}}
+    <div class="border books"></div>
+
+    {{#nav-section currentPath=currentPath path='about'}}
+      {{link-to 'About' 'about' classNames='parent-link about'}}
+      <div class="links about">
+        {{{contact.contactNarrative}}}
+        {{#if contact.email}}
+          <p><a {{bind-attr href='contact.mailTo'}} title="Email Eric Losh" target="_blank">{{contact.email}}</a></p>
+        {{/if}}
+      </div>
+    {{/nav-section}}
+    <div class="border about"></div>
+
+    <div class="section">
+      <a {{bind-attr href='contact.storeLink'}} class="parent-link shop" target="_blank">Shop</a>
+    </div>
+    <div class="border shop"></div>
+
+  </div>
+</div>

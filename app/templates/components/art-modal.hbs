@@ -1,0 +1,23 @@
+<div class="art-modal-image">
+  {{#if imageLoaded}}
+    <img {{bind-attr src='art.image.url' alt='art.title' }}/>
+  {{/if}}
+</div>
+<div class="artwork-details">
+  {{#if art.title}}<p class="art-title">{{art.title}}</p>{{/if}}
+  {{#if art.bookTitle}}<p class="book-title">{{art.bookTitle}}</p>{{/if}}
+  {{#if art.medium}}<p class="art-medium">{{art.medium}}</p>{{/if}}
+  {{#if art.description}}<div class="art-description">{{{art.description}}}</div>{{/if}}
+</div>
+<div {{bind-attr class='imageLoaded:loaded :loading-overlay'}} style="background-image: none;">
+
+{{!-- <div id="loading-route">
+  <div class="margin">
+    <h1><span class="first">.</span><span class="second">.</span><span class="third">.</span></h1>
+  </div>
+</div> --}}
+
+</div>
+<a href="#" class="modal-navigation previous" {{action 'previousItem'}}>Previous</a>
+<a href="#" class="modal-navigation next" {{action 'nextItem'}}>Next</a>
+<a href="#" class="modal-navigation close" {{action 'closeModal'}}>Close Modal</a>

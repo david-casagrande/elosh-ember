@@ -1,0 +1,8 @@
+<h1 class="artwork-category-title">{{category.name}}</h1>
+{{#if category.categoryDescription}}
+  <div class="artwork-category-image clear-fix">
+    <img {{bind-attr src="category.categoryDescription" alt="category.name"}} />
+  </div>
+{{/if}}
+
+{{partial 'partials/artwork-thumbnails'}}

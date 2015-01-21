@@ -1,0 +1,31 @@
+<div id="books">
+  {{#if titleNotes}}
+    <h1 class="book-title">{{title}} <span>- {{titleNotes}}</span></h1>
+  {{else}}
+    <h1 class="book-title">{{title}}</h1>
+  {{/if}}
+
+  <div class="book-images clear-fix">
+    <div class="book-banner-image">
+      <img {{bind-attr src="bannerImage.url"}}/>
+    </div>
+    <div class="book-cover-image large-5-columns">
+      <img {{bind-attr src="coverImage.url"}}/>
+    </div>
+  </div>
+
+  <div id="book-narrative-and-pages" class="clear-fix">
+    <div class="book-narrative">
+      <div class="padding">
+        {{{narrative}}}
+      </div>
+    </div>
+
+    <div class="book-pages">
+      <div class="padding">
+        {{partial 'partials/book-thumbnails'}}
+      </div>
+    </div>
+
+  </div>
+</div>

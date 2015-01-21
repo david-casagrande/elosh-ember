@@ -1,0 +1,34 @@
+<div id="about">
+  <img {{bind-attr src='image.url'}} alt="About Eric Losh"/>
+
+  {{#max-width width=image.width}}
+    <div class="about-narratives" {{bind-attr style="narrativeWidth"}}>
+      <div class="contact-info clear-fix">
+        <p><strong>ERIC LOSH</strong></p>
+        {{#if contact.email}}
+          <p><a {{bind-attr href="contact.mailTo"}} title="Email Eric Losh" target="_blank">{{contact.email}}</a></p>
+        {{/if}}
+        {{#if contact.phone}}
+          <p>{{contact.phone}}</p>
+        {{/if}}
+        {{#if contact.twitter}}
+          <p>Twitter: <a {{bind-attr href="contact.twitterLink"}} target="_blank" title="Eric Losh's Twitter">@{{contact.twitter}}</a></p>
+        {{/if}}
+      </div>
+
+      {{#if narrativeOne}}
+        <div class="narrative-one">
+          {{{narrativeOne}}}
+        </div>
+      {{/if}}
+
+      {{#if narrativeTwo}}
+        <div class="mini-border"></div>
+        <div class="narrative-two">
+          {{{narrativeTwo}}}
+        </div>
+      {{/if}}
+    </div>
+  {{/max-width}}
+
+</div>

@@ -1,0 +1,11 @@
+<ul class="large-block-grid-2 small-block-grid-1">
+  {{#each bookPage in bookPages}}
+    <li>
+      {{!#link-to 'books.show.bookPage' bookPage.slug}}
+        <a href="#" {{action 'linkToArtModal' bookPage}}>
+          <img {{bind-attr src='bookPage.thumbnail.url' alt='title'}} />
+        </a>
+      {{!/link-to}}
+    </li>
+  {{/each}}
+</ul>
