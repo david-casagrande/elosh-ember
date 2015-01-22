@@ -21,11 +21,12 @@ export default Ember.Route.extend({
 
   model: function(params) {
     var artwork = this.modelFor('artwork'),
-        categories = this.store.all('artworkCategory'),
-        category = categories.findBy('slug', params.category_slug);
+        artworkCategories = this.store.all('artworkCategory'),
+        category = artworkCategories.findBy('slug', params.category_slug);
 
     artwork = artwork.filter(function(artwork) {
       var categories = artwork.get('categories');
+      console.log(categories);
       return categories.contains(params.category_slug);
     });
 

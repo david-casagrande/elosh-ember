@@ -8,16 +8,17 @@ export default Ember.Route.extend({
       books:             store.find('book', { 'action': 'get_books' }),
       artworkCategories: store.find('artworkCategory', { 'action': 'get_artwork_categories' }),
       contact:           store.find('contact', 1),
-      about:             store.find('about', 1)
+      about:             store.find('about', 1),
+      artwork:           store.find('artwork', { 'action': 'get_artwork' })
     });
   },
 
   afterModel: function() {
     return new Ember.RSVP.Promise(function(resolve) {
-      Ember.run.later(() => {
+      //Ember.run.later(() => {
         Ember.$('#elosh-stub').remove();
         resolve();
-      }, 5000);
+      //}, 2000);
     });
   },
 
