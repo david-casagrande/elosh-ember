@@ -26,7 +26,6 @@ export default Ember.Route.extend({
 
     artwork = artwork.filter(function(artwork) {
       var categories = artwork.get('categories');
-      console.log(categories);
       return categories.contains(params.category_slug);
     });
 
