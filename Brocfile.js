@@ -6,8 +6,7 @@ var app = new EmberApp({
   fingerprint: {
     enabled: false
   },
-  storeConfigInMeta: false,
-  lessOptions: {}
+  storeConfigInMeta: false
 });
 
 // Use `app.import` to add additional libraries to the generated
