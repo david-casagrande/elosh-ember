@@ -7,9 +7,7 @@ var app = new EmberApp({
     enabled: false
   },
   storeConfigInMeta: false,
-  lessOptions: {
-    relativeUrls: true
-  }
+  lessOptions: {}
 });
 
 // Use `app.import` to add additional libraries to the generated
