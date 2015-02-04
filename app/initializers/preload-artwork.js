@@ -1,4 +1,4 @@
-export function initialize(container, application) {
+export function initialize() {
   //console.log(window.ELOSH_PRELOADED_ARTWORK)
   //console.log(container.lookup('store:main'), application);
 
