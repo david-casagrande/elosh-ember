@@ -9,11 +9,11 @@ export default Ember.ObjectController.extend({
   }.property(),
 
   logoURL: function() {
-    return this.get('themeDirectory') + '/assets/images/elosh-logo.jpg';
+    return this.get('themeDirectory') + '/assets/dist/images/elosh-logo.jpg';
   }.property('themeDirectory'),
 
   footerLogoURL: function() {
-    return this.get('themeDirectory') + '/assets/images/elosh-footer.jpg';
+    return this.get('themeDirectory') + '/assets/dist/images/elosh-footer.jpg';
   }.property('themeDirectory')
 
 });
