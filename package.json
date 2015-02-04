@@ -8,7 +8,7 @@
   },
   "scripts": {
     "start": "ember server",
-    "build": "ember build",
+    "build": "ember build && ember build --output-path dist_production --environment production",
     "test": "ember test"
   },
   "repository": "",
