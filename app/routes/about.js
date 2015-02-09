@@ -1,6 +1,7 @@
 import Ember from 'ember';
+import ScrollToTop from '../mixins/routes/scroll-to-top';
 
-export default Ember.Route.extend({
+export default Ember.Route.extend(ScrollToTop, {
 
   model: function() {
     return Ember.RSVP.hash({
