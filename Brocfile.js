@@ -9,6 +9,8 @@ var app = new EmberApp({
   storeConfigInMeta: false
 });
 
+
+app.import('bower_components/progressbar.js/dist/progressbar.min.js');
 // Use `app.import` to add additional libraries to the generated
 // output files.
 //

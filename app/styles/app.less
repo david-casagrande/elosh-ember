@@ -838,3 +838,14 @@ animation: blink 2s infinite;
   75% {opacity: 1;}
   100% {opacity: 0;}
 }
+
+@progress-size: 50px;
+#progress-circle {
+  width:  @progress-size;
+  height: @progress-size;
+  position: absolute;
+  top: 50%;
+  margin-top: -@progress-size/2;
+  left: 50%;
+  margin-left: -@progress-size/2;
+}
