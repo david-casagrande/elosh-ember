@@ -42,8 +42,11 @@ export default Ember.Mixin.create({
         self._readFile(this.response);
       };
       oReq.onprogress = function(e) {
-        var p = parseFloat(e.loaded / e.total).toFixed(2);
-        self.get('progress').animate(p);
+        var p = parseFloat(e.loaded / e.total).toFixed(2),
+            progress = self.get('progress');
+
+        progress.stop();
+        progress.animate(p);
       };
       oReq.open('get', this.get('art.image.url'), true);
       oReq.responseType = 'blob';
