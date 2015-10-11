@@ -85,6 +85,7 @@ export default Ember.Mixin.create({
 
   _hideLoadingOverlay: function() {
     Ember.run.later(this, function() {
+      if(this.get('isDestroyed') || this.get('isDestroying')) { return; }
       this.set('hideOverlay', true);
     }, 2000); // 2s via .loaded class fades out overlay time
   }
