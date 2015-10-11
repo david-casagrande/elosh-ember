@@ -9,9 +9,11 @@
   {{#if art.medium}}<p class="art-medium">{{art.medium}}</p>{{/if}}
   {{#if art.description}}<div class="art-description">{{{art.description}}}</div>{{/if}}
 </div>
+{{#unless hideOverlay}}
 <div {{bind-attr class='imageLoaded:loaded :loading-overlay'}}>
   <div id="progress-circle"></div>
 </div>
+{{/unless}}
 <a href="#" class="modal-navigation previous" {{action 'previousItem'}}>Previous</a>
 <a href="#" class="modal-navigation next" {{action 'nextItem'}}>Next</a>
 <a href="#" class="modal-navigation close" {{action 'closeModal'}}>Close Modal</a>

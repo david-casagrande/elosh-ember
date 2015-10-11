@@ -8,6 +8,7 @@ export default Ember.Mixin.create({
 
   imageLoaded: false,
   imageDataUrl: null,
+  hideOverlay: false,
 
   progressLoaderDuration: 400,
 
@@ -78,7 +79,13 @@ export default Ember.Mixin.create({
   _setImageLoaded: function() {
     Ember.run.later(this, function() {
       this.set('imageLoaded', true);
+      this._hideLoadingOverlay();
     }, this.get('progressLoaderDuration'));
-  }
+  },
 
+  _hideLoadingOverlay: function() {
+    Ember.run.later(this, function() {
+      this.set('hideOverlay', true);
+    }, 2000); // 2s via .loaded class fades out overlay time
+  }
 });
