@@ -1,18 +1,18 @@
 <div id="about">
-  <img {{bind-attr src='model.about.image.url'}} alt="About Eric Losh"/>
+  <img src="{{model.about.image.url}}" alt="About Eric Losh"/>
 
   {{#max-width width=model.about.image.width}}
     <div class="about-narratives">
       <div class="contact-info clear-fix">
         <p><strong>ERIC LOSH</strong></p>
         {{#if model.contact.email}}
-          <p><a {{bind-attr href="model.contact.mailTo"}} title="Email Eric Losh" target="_blank">{{model.contact.email}}</a></p>
+          <p><a href="{{model.contact.mailTo}}" title="Email Eric Losh" target="_blank">{{model.contact.email}}</a></p>
         {{/if}}
         {{#if model.contact.phone}}
           <p>{{model.contact.phone}}</p>
         {{/if}}
         {{#if model.contact.twitter}}
-          <p>Twitter: <a {{bind-attr href="model.contact.twitterLink"}} target="_blank" title="Eric Losh's Twitter">@{{model.contact.twitter}}</a></p>
+          <p>Twitter: <a href="{{model.contact.twitterLink}}" target="_blank" title="Eric Losh's Twitter">@{{model.contact.twitter}}</a></p>
         {{/if}}
       </div>
 

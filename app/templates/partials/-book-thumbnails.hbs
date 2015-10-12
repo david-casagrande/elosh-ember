@@ -2,7 +2,7 @@
   {{#each model.bookPages as |bookPage|}}
     <li>
       <a href="#" {{action 'linkToArtModal' bookPage}}>
-        <img {{bind-attr src='bookPage.thumbnail.url' alt='bookPage.title'}} />
+        <img src="{{bookPage.thumbnail.url}}" alt="{{bookPage.title}}" />
       </a>
     </li>
   {{/each}}

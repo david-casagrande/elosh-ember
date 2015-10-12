@@ -1,7 +1,7 @@
 <ul class="art-thumbs large-block-grid-4 medium-block-grid-3 small-block-grid-1">
   {{#each model.artwork as |art|}}
     <li {{action 'linkToArtModal' art}}>
-      <img {{bind-attr src='art.thumbnail.url' alt='art.title'}} />
+      <img src="{{art.thumbnail.url}}" alt="{{art.title}}"}} />
       <p class="art-thumb-title">
         <a href="#">{{art.title}}</a>
       </p>

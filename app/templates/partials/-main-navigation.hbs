@@ -26,14 +26,14 @@
       <div class="links about">
         {{{model.contact.contactNarrative}}}
         {{#if model.contact.email}}
-          <p><a {{bind-attr href='model.contact.mailTo'}} title="Email Eric Losh" target="_blank">{{model.contact.email}}</a></p>
+          <p><a href="{{model.contact.mailTo}}" title="Email Eric Losh" target="_blank">{{model.contact.email}}</a></p>
         {{/if}}
       </div>
     {{/nav-section}}
     <div class="border about"></div>
 
     <div class="section">
-      <a {{bind-attr href='model.contact.storeLink'}} class="parent-link shop" target="_blank">Shop</a>
+      <a href="{{model.contact.storeLink}}" class="parent-link shop" target="_blank">Shop</a>
     </div>
     <div class="border shop"></div>
 
