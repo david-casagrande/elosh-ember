@@ -9,17 +9,30 @@ export default Ember.Mixin.create({
   imageLoaded: false,
   imageDataUrl: null,
   hideOverlay: false,
+  timers: [],
 
   progressLoaderDuration: 400,
 
-  _setup: function() {
-    this.set('progress', this._createProgressBar());
-    this._loadImage();
-  }.on('didInsertElement'),
+  _setup: Ember.on('didReceiveAttrs', function() {
+    this.get('timers').forEach((timer) => Ember.run.cancel(timer));
 
-  _teardown: function() {
+    this.setProperties({
+      imageLoaded: false,
+      imageDataUrl: null,
+      hideOverlay: false,
+      timers: []
+    });
+
+    Ember.run.schedule('afterRender', () => {
+      if(this.get('progress')) { this.get('progress').destroy(); }
+      this.set('progress', this._createProgressBar());
+      this._loadImage();
+    });
+  }),
+
+  _teardown: Ember.on('willDestroyElement', function() {
     this.get('progress').destroy();
-  }.on('willDestroyElement'),
+  }),
 
   _createProgressBar: function() {
     return new ProgressBar.Circle('#progress-circle', {
@@ -43,8 +56,8 @@ export default Ember.Mixin.create({
         self._readFile(this.response);
       };
       oReq.onprogress = function(e) {
-        var p = parseFloat(e.loaded / e.total).toFixed(2),
-            progress = self.get('progress');
+        var p = parseFloat(e.loaded / e.total).toFixed(2);
+        var progress = self.get('progress');
 
         progress.stop();
         progress.animate(p);
@@ -77,16 +90,20 @@ export default Ember.Mixin.create({
   },
 
   _setImageLoaded: function() {
-    Ember.run.later(this, function() {
+    var timer = Ember.run.later(this, function() {
       this.set('imageLoaded', true);
       this._hideLoadingOverlay();
     }, this.get('progressLoaderDuration'));
+
+    this.get('timers').addObject(timer);
   },
 
   _hideLoadingOverlay: function() {
-    Ember.run.later(this, function() {
+    var timer = Ember.run.later(this, function() {
       if(this.get('isDestroyed') || this.get('isDestroying')) { return; }
       this.set('hideOverlay', true);
     }, 2000); // 2s via .loaded class fades out overlay time
+
+    this.get('timers').addObject(timer);
   }
 });

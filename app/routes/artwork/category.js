@@ -22,7 +22,7 @@ export default Ember.Route.extend(ScrollToTop, {
 
   model: function(params) {
     var artwork = this.modelFor('artwork'),
-        artworkCategories = this.store.all('artworkCategory'),
+        artworkCategories = this.store.peekAll('artworkCategory'),
         category = artworkCategories.findBy('slug', params.category_slug);
 
     artwork = artwork.filter(function(artwork) {

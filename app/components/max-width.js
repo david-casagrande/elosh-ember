@@ -4,9 +4,10 @@ export default Ember.Component.extend({
 
   attributeBindings: ['style'],
 
-  style: function() {
-    var width = this.get('width') ? this.get('width') : 0;
-    return 'max-width: ' + width + 'px;';
-  }.property('width')
-
+  style: Ember.computed('width', {
+    get() {
+      var width = this.get('width') ? this.get('width') : 0;
+      return new Ember.Handlebars.SafeString('max-width: ' + width + 'px;');
+    }
+  })
 });

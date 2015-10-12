@@ -1,13 +1,12 @@
 import Ember from 'ember';
 
 export default Ember.Mixin.create({
-
   keyboardNavigationBindingId: null,
 
-  _setupKeyboardNavigation: function() {
+  _setupKeyboardNavigation: Ember.on('didInsertElement', function() {
     this._setKeyboardNavigationBindingId();
     this._setKeyboardNavigationManagement();
-  }.on('didInsertElement'),
+  }),
 
   _setKeyboardNavigationBindingId: function() {
     var id = ['keyup', 'artModalComponent', this.get('elementId')];
@@ -28,8 +27,7 @@ export default Ember.Mixin.create({
     this.send(action);
   },
 
-  _teardownKeyboardNavigationManagement: function() {
+  _teardownKeyboardNavigationManagement: Ember.on('willDestroyElement', function() {
     Ember.$(window).off(this.get('keyboardNavigationBindingId'));
-  }.on('willDestroyElement')
-
+  })
 });

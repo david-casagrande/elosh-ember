@@ -1,9 +1,7 @@
-import DS from 'ember-data';
+import ActiveModelAdapter from 'active-model-adapter';
 
-export default DS.ActiveModelAdapter.extend({
-
-  buildURL: function(){
+export default ActiveModelAdapter.extend({
+  buildURL: function() {
     return '/wp-admin/admin-ajax.php';
   }
-
 });

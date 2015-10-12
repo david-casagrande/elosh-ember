@@ -5,11 +5,11 @@ export default Ember.Route.extend({
   model: function() {
     var store = this.get('store');
     return Ember.RSVP.hash({
-      books:             store.find('book', { 'action': 'get_books' }),
-      artworkCategories: store.find('artworkCategory', { 'action': 'get_artwork_categories' }),
+      books:             store.query('book', { 'action': 'get_books' }),
+      artworkCategories: store.query('artworkCategory', { 'action': 'get_artwork_categories' }),
       contact:           store.find('contact', 1),
       about:             store.find('about', 1),
-      artwork:           store.find('artwork', { 'action': 'get_artwork' })
+      artwork:           store.query('artwork', { 'action': 'get_artwork' })
     });
   },
 

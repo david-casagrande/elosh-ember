@@ -1,30 +1,28 @@
 import Ember from 'ember';
 
 export default Ember.Component.extend({
-
   classNames: ['section'],
   open: false,
 
   closedHeight: 20,
-  openHeight: 0,
 
-  attributeBindings: ['style'],
+  _update: Ember.on('didReceiveAttrs', function() {
+    Ember.run.schedule('afterRender', () => this._setHeight());
+  }),
 
-  style: function() {
-    var sectionHeight = this.get('open') ? this.get('openHeight') : this.get('closedHeight');
-    return 'height: ' + sectionHeight + 'px;';
-  }.property('open', 'openHeight'),
+  _setHeight: function() {
+    var height = this.get('closedHeight');
+    var open = this._checkIfOpen();
 
-  _setOpenHeight: function() {
-    var height = this.$().find('.links').outerHeight();
-    this.set('openHeight', height + this.get('closedHeight'));
-  }.on('didInsertElement'),
+    if(open) {
+      height = this.$().find('.links').outerHeight() + this.get('closedHeight');
+    }
 
-  _currentPathChange: function() {
-    var parentRoute = this.get('currentPath').split('.').objectAt(0),
-        open = parentRoute === this.get('path');
+    this.$().css({ height: height });
+  },
 
-    this.set('open', open);
-  }.observes('currentPath').on('init')
-
+  _checkIfOpen: function() {
+    var parentRoute = this.get('currentPath').split('.').objectAt(0);
+    return parentRoute === this.get('path');
+  }
 });

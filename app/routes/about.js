@@ -12,12 +12,12 @@ export default Ember.Route.extend(ScrollToTop, {
   },
 
   setupController: function(controller, model) {
-    //this._super(controller, model);
+    this._super(controller, model);
 
-    controller.setProperties({
-      model: model.about,
-      contact: model.contact
-    });
+    // controller.setProperties({
+    //   model: model.about,
+    //   contact: model.contact
+    // });
     // var contactModel = this.modelFor('application').contact;
     // controller.set('contact', contactModel);
   }

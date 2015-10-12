@@ -1,7 +1,7 @@
-<h1 class="artwork-category-title">{{category.name}}</h1>
-{{#if category.categoryDescription}}
+<h1 class="artwork-category-title">{{model.category.name}}</h1>
+{{#if model.category.categoryDescription}}
   <div class="artwork-category-image clear-fix">
-    <img {{bind-attr src="category.categoryDescription" alt="category.name"}} />
+    <img src="{{model.category.categoryDescription}}" alt="{{model.category.name}}" />
   </div>
 {{/if}}
 

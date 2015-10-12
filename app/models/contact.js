@@ -1,4 +1,5 @@
 import DS from 'ember-data';
+import Ember from 'ember';
 
 var a = DS.attr;
 
@@ -9,12 +10,15 @@ export default DS.Model.extend({
   twitter:          a('string'),
   storeLink:        a('string'),
 
-  mailTo: function(){
-    return this.get('email') ? 'mailto:'+this.get('email') : null;
-  }.property('email'),
+  mailTo: Ember.computed('email', {
+    get() {
+      return this.get('email') ? 'mailto:'+this.get('email') : null;
+    }
+  }),
 
-  twitterLink: function(){
-    return this.get('twitter') ? 'https://twitter.com/'+this.get('twitter') : null;
-  }.property('twitter')
-
+  twitterLink: Ember.computed('twitter', {
+    get() {
+      return this.get('twitter') ? 'https://twitter.com/'+this.get('twitter') : null;
+    }
+  })
 });

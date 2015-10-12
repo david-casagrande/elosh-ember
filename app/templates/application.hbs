@@ -1,10 +1,10 @@
 <div id="left-nav">
   <div class="brand clear-fix">
-    {{#link-to 'index'}}<img {{bind-attr src=logoURL}} alt="Eric Losh"/>{{/link-to}}
+    {{#link-to 'index'}}<img src="{{logoURL}}" alt="Eric Losh" />{{/link-to}}
   </div>
   {{partial 'partials/main-navigation'}}
   <div class="footer clear-fix">
-    <img {{bind-attr src=footerLogoURL}} />
+    <img src="{{footerLogoURL}}" />
     <p>Web by <a href="https://github.com/david-casagrande" target="_blank" title="David Casagrande">David Casagrande</a></p>
   </div>
 </div>
@@ -17,14 +17,8 @@
   </div>
 </div>
 
-<div id="modal" {{bind-attr class='modalOpen:show'}}>
+<div id="modal" class="{{if modalOpen 'show'}}">
   <div class="margin">
     {{outlet 'modal'}}
   </div>
 </div>
-
-{{!-- <div id="loading-screen">
-  <div class="margin" style="height: 500px;">
-    <div class="loading-screen-content"></div>
-  </div>
-</div> --}}

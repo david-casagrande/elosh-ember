@@ -10,6 +10,6 @@ export default DS.Model.extend({
   slug:        a('string'),
   title:       a('string'),
 
-  image:       b('imageObject'),
-  thumbnail:   b('imageObject')
+  image:       b('imageObject', { async: true }),
+  thumbnail:   b('imageObject', { async: true })
 });
