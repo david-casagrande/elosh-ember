@@ -3,7 +3,7 @@
   "dependencies": {
     "handlebars": "~2.0.0",
     "jquery": "^1.11.1",
-    "ember": "1.10.0",
+    "ember": "1.12.0",
     "ember-data": "canary",
     "ember-resolver": "~0.1.10",
     "loader.js": "stefanpenner/loader.js#1.0.1",

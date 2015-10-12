@@ -4,7 +4,7 @@
     {{#nav-section currentPath=currentPath path='artwork'}}
       {{#link-to 'artwork' classNames="parent-link artwork"}}Artwork{{/link-to}}
       <div class="links">
-        {{#each artworkCategory in artworkCategories}}
+        {{#each artworkCategory in model.artworkCategories}}
           {{#link-to 'artwork.category' artworkCategory.slug}}{{artworkCategory.name}}{{/link-to}}
         {{/each}}
       </div>
