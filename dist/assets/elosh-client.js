@@ -1097,7 +1097,7 @@ define('elosh-client/templates/about', ['exports'], function (exports) {
       var child0 = (function() {
         return {
           meta: {
-            "revision": "Ember@1.13.5",
+            "revision": "Ember@1.13.6",
             "loc": {
               "source": null,
               "start": {
@@ -1148,7 +1148,7 @@ define('elosh-client/templates/about', ['exports'], function (exports) {
       var child1 = (function() {
         return {
           meta: {
-            "revision": "Ember@1.13.5",
+            "revision": "Ember@1.13.6",
             "loc": {
               "source": null,
               "start": {
@@ -1192,7 +1192,7 @@ define('elosh-client/templates/about', ['exports'], function (exports) {
       var child2 = (function() {
         return {
           meta: {
-            "revision": "Ember@1.13.5",
+            "revision": "Ember@1.13.6",
             "loc": {
               "source": null,
               "start": {
@@ -1247,7 +1247,7 @@ define('elosh-client/templates/about', ['exports'], function (exports) {
       var child3 = (function() {
         return {
           meta: {
-            "revision": "Ember@1.13.5",
+            "revision": "Ember@1.13.6",
             "loc": {
               "source": null,
               "start": {
@@ -1296,7 +1296,7 @@ define('elosh-client/templates/about', ['exports'], function (exports) {
       var child4 = (function() {
         return {
           meta: {
-            "revision": "Ember@1.13.5",
+            "revision": "Ember@1.13.6",
             "loc": {
               "source": null,
               "start": {
@@ -1349,7 +1349,7 @@ define('elosh-client/templates/about', ['exports'], function (exports) {
       }());
       return {
         meta: {
-          "revision": "Ember@1.13.5",
+          "revision": "Ember@1.13.6",
           "loc": {
             "source": null,
             "start": {
@@ -1434,7 +1434,7 @@ define('elosh-client/templates/about', ['exports'], function (exports) {
     }());
     return {
       meta: {
-        "revision": "Ember@1.13.5",
+        "revision": "Ember@1.13.6",
         "loc": {
           "source": null,
           "start": {
@@ -1497,7 +1497,7 @@ define('elosh-client/templates/application', ['exports'], function (exports) {
     var child0 = (function() {
       return {
         meta: {
-          "revision": "Ember@1.13.5",
+          "revision": "Ember@1.13.6",
           "loc": {
             "source": null,
             "start": {
@@ -1536,7 +1536,7 @@ define('elosh-client/templates/application', ['exports'], function (exports) {
     }());
     return {
       meta: {
-        "revision": "Ember@1.13.5",
+        "revision": "Ember@1.13.6",
         "loc": {
           "source": null,
           "start": {
@@ -1680,7 +1680,7 @@ define('elosh-client/templates/artwork/category/show', ['exports'], function (ex
   exports['default'] = Ember.HTMLBars.template((function() {
     return {
       meta: {
-        "revision": "Ember@1.13.5",
+        "revision": "Ember@1.13.6",
         "loc": {
           "source": null,
           "start": {
@@ -1728,7 +1728,7 @@ define('elosh-client/templates/artwork/category', ['exports'], function (exports
     var child0 = (function() {
       return {
         meta: {
-          "revision": "Ember@1.13.5",
+          "revision": "Ember@1.13.6",
           "loc": {
             "source": null,
             "start": {
@@ -1779,7 +1779,7 @@ define('elosh-client/templates/artwork/category', ['exports'], function (exports
     }());
     return {
       meta: {
-        "revision": "Ember@1.13.5",
+        "revision": "Ember@1.13.6",
         "loc": {
           "source": null,
           "start": {
@@ -1840,7 +1840,7 @@ define('elosh-client/templates/books/show/book-page', ['exports'], function (exp
   exports['default'] = Ember.HTMLBars.template((function() {
     return {
       meta: {
-        "revision": "Ember@1.13.5",
+        "revision": "Ember@1.13.6",
         "loc": {
           "source": null,
           "start": {
@@ -1888,7 +1888,7 @@ define('elosh-client/templates/books/show', ['exports'], function (exports) {
     var child0 = (function() {
       return {
         meta: {
-          "revision": "Ember@1.13.5",
+          "revision": "Ember@1.13.6",
           "loc": {
             "source": null,
             "start": {
@@ -1944,7 +1944,7 @@ define('elosh-client/templates/books/show', ['exports'], function (exports) {
     var child1 = (function() {
       return {
         meta: {
-          "revision": "Ember@1.13.5",
+          "revision": "Ember@1.13.6",
           "loc": {
             "source": null,
             "start": {
@@ -1988,7 +1988,7 @@ define('elosh-client/templates/books/show', ['exports'], function (exports) {
     }());
     return {
       meta: {
-        "revision": "Ember@1.13.5",
+        "revision": "Ember@1.13.6",
         "loc": {
           "source": null,
           "start": {
@@ -2128,7 +2128,7 @@ define('elosh-client/templates/components/art-modal', ['exports'], function (exp
     var child0 = (function() {
       return {
         meta: {
-          "revision": "Ember@1.13.5",
+          "revision": "Ember@1.13.6",
           "loc": {
             "source": null,
             "start": {
@@ -2173,7 +2173,7 @@ define('elosh-client/templates/components/art-modal', ['exports'], function (exp
     var child1 = (function() {
       return {
         meta: {
-          "revision": "Ember@1.13.5",
+          "revision": "Ember@1.13.6",
           "loc": {
             "source": null,
             "start": {
@@ -2214,7 +2214,7 @@ define('elosh-client/templates/components/art-modal', ['exports'], function (exp
     var child2 = (function() {
       return {
         meta: {
-          "revision": "Ember@1.13.5",
+          "revision": "Ember@1.13.6",
           "loc": {
             "source": null,
             "start": {
@@ -2255,7 +2255,7 @@ define('elosh-client/templates/components/art-modal', ['exports'], function (exp
     var child3 = (function() {
       return {
         meta: {
-          "revision": "Ember@1.13.5",
+          "revision": "Ember@1.13.6",
           "loc": {
             "source": null,
             "start": {
@@ -2296,7 +2296,7 @@ define('elosh-client/templates/components/art-modal', ['exports'], function (exp
     var child4 = (function() {
       return {
         meta: {
-          "revision": "Ember@1.13.5",
+          "revision": "Ember@1.13.6",
           "loc": {
             "source": null,
             "start": {
@@ -2336,7 +2336,7 @@ define('elosh-client/templates/components/art-modal', ['exports'], function (exp
     }());
     return {
       meta: {
-        "revision": "Ember@1.13.5",
+        "revision": "Ember@1.13.6",
         "loc": {
           "source": null,
           "start": {
@@ -2466,7 +2466,7 @@ define('elosh-client/templates/components/max-width', ['exports'], function (exp
   exports['default'] = Ember.HTMLBars.template((function() {
     return {
       meta: {
-        "revision": "Ember@1.13.5",
+        "revision": "Ember@1.13.6",
         "loc": {
           "source": null,
           "start": {
@@ -2513,7 +2513,7 @@ define('elosh-client/templates/components/nav-section', ['exports'], function (e
   exports['default'] = Ember.HTMLBars.template((function() {
     return {
       meta: {
-        "revision": "Ember@1.13.5",
+        "revision": "Ember@1.13.6",
         "loc": {
           "source": null,
           "start": {
@@ -2560,7 +2560,7 @@ define('elosh-client/templates/loading', ['exports'], function (exports) {
   exports['default'] = Ember.HTMLBars.template((function() {
     return {
       meta: {
-        "revision": "Ember@1.13.5",
+        "revision": "Ember@1.13.6",
         "loc": {
           "source": null,
           "start": {
@@ -2634,7 +2634,7 @@ define('elosh-client/templates/partials/-artwork-thumbnails', ['exports'], funct
     var child0 = (function() {
       return {
         meta: {
-          "revision": "Ember@1.13.5",
+          "revision": "Ember@1.13.6",
           "loc": {
             "source": null,
             "start": {
@@ -2703,7 +2703,7 @@ define('elosh-client/templates/partials/-artwork-thumbnails', ['exports'], funct
     }());
     return {
       meta: {
-        "revision": "Ember@1.13.5",
+        "revision": "Ember@1.13.6",
         "loc": {
           "source": null,
           "start": {
@@ -2755,7 +2755,7 @@ define('elosh-client/templates/partials/-book-thumbnails', ['exports'], function
     var child0 = (function() {
       return {
         meta: {
-          "revision": "Ember@1.13.5",
+          "revision": "Ember@1.13.6",
           "loc": {
             "source": null,
             "start": {
@@ -2815,7 +2815,7 @@ define('elosh-client/templates/partials/-book-thumbnails', ['exports'], function
     }());
     return {
       meta: {
-        "revision": "Ember@1.13.5",
+        "revision": "Ember@1.13.6",
         "loc": {
           "source": null,
           "start": {
@@ -2868,7 +2868,7 @@ define('elosh-client/templates/partials/-main-navigation', ['exports'], function
       var child0 = (function() {
         return {
           meta: {
-            "revision": "Ember@1.13.5",
+            "revision": "Ember@1.13.6",
             "loc": {
               "source": null,
               "start": {
@@ -2903,7 +2903,7 @@ define('elosh-client/templates/partials/-main-navigation', ['exports'], function
         var child0 = (function() {
           return {
             meta: {
-              "revision": "Ember@1.13.5",
+              "revision": "Ember@1.13.6",
               "loc": {
                 "source": null,
                 "start": {
@@ -2942,7 +2942,7 @@ define('elosh-client/templates/partials/-main-navigation', ['exports'], function
         }());
         return {
           meta: {
-            "revision": "Ember@1.13.5",
+            "revision": "Ember@1.13.6",
             "loc": {
               "source": null,
               "start": {
@@ -2983,7 +2983,7 @@ define('elosh-client/templates/partials/-main-navigation', ['exports'], function
       }());
       return {
         meta: {
-          "revision": "Ember@1.13.5",
+          "revision": "Ember@1.13.6",
           "loc": {
             "source": null,
             "start": {
@@ -3039,7 +3039,7 @@ define('elosh-client/templates/partials/-main-navigation', ['exports'], function
       var child0 = (function() {
         return {
           meta: {
-            "revision": "Ember@1.13.5",
+            "revision": "Ember@1.13.6",
             "loc": {
               "source": null,
               "start": {
@@ -3074,7 +3074,7 @@ define('elosh-client/templates/partials/-main-navigation', ['exports'], function
         var child0 = (function() {
           return {
             meta: {
-              "revision": "Ember@1.13.5",
+              "revision": "Ember@1.13.6",
               "loc": {
                 "source": null,
                 "start": {
@@ -3113,7 +3113,7 @@ define('elosh-client/templates/partials/-main-navigation', ['exports'], function
         }());
         return {
           meta: {
-            "revision": "Ember@1.13.5",
+            "revision": "Ember@1.13.6",
             "loc": {
               "source": null,
               "start": {
@@ -3154,7 +3154,7 @@ define('elosh-client/templates/partials/-main-navigation', ['exports'], function
       }());
       return {
         meta: {
-          "revision": "Ember@1.13.5",
+          "revision": "Ember@1.13.6",
           "loc": {
             "source": null,
             "start": {
@@ -3210,7 +3210,7 @@ define('elosh-client/templates/partials/-main-navigation', ['exports'], function
       var child0 = (function() {
         return {
           meta: {
-            "revision": "Ember@1.13.5",
+            "revision": "Ember@1.13.6",
             "loc": {
               "source": null,
               "start": {
@@ -3260,7 +3260,7 @@ define('elosh-client/templates/partials/-main-navigation', ['exports'], function
       }());
       return {
         meta: {
-          "revision": "Ember@1.13.5",
+          "revision": "Ember@1.13.6",
           "loc": {
             "source": null,
             "start": {
@@ -3321,7 +3321,7 @@ define('elosh-client/templates/partials/-main-navigation', ['exports'], function
     }());
     return {
       meta: {
-        "revision": "Ember@1.13.5",
+        "revision": "Ember@1.13.6",
         "loc": {
           "source": null,
           "start": {
@@ -3866,13 +3866,28 @@ define('elosh-client/tests/test-helper.jshint', function () {
 /* jshint ignore:start */
 
 define('elosh-client/config/environment', ['ember'], function(Ember) {
-  return { 'default': {"modulePrefix":"elosh-client","environment":"development","baseURL":"/","locationType":"auto","EmberENV":{"FEATURES":{}},"APP":{"name":"elosh-client","version":"0.0.0+80723b17"},"contentSecurityPolicyHeader":"Content-Security-Policy-Report-Only","contentSecurityPolicy":{"default-src":"'none'","script-src":"'self' 'unsafe-eval'","font-src":"'self'","connect-src":"'self'","img-src":"'self'","style-src":"'self'","media-src":"'self'"},"exportApplicationGlobal":true}};
+  var prefix = 'elosh-client';
+/* jshint ignore:start */
+
+try {
+  var metaName = prefix + '/config/environment';
+  var rawConfig = Ember['default'].$('meta[name="' + metaName + '"]').attr('content');
+  var config = JSON.parse(unescape(rawConfig));
+
+  return { 'default': config };
+}
+catch(err) {
+  throw new Error('Could not read config from meta tag with name "' + metaName + '".');
+}
+
+/* jshint ignore:end */
+
 });
 
 if (runningTests) {
   require("elosh-client/tests/test-helper");
 } else {
-  require("elosh-client/app")["default"].create({"name":"elosh-client","version":"0.0.0+80723b17"});
+  require("elosh-client/app")["default"].create({"name":"elosh-client","version":"0.0.0+7b08467e"});
 }
 
 /* jshint ignore:end */
