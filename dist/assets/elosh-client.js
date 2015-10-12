@@ -61,6 +61,20 @@ define('elosh-client/app', ['exports', 'ember', 'ember/resolver', 'ember/load-in
   exports['default'] = App;
 
 });
+define('elosh-client/components/app-version', ['exports', 'ember-cli-app-version/components/app-version', 'elosh-client/config/environment'], function (exports, AppVersionComponent, config) {
+
+  'use strict';
+
+  var _config$APP = config['default'].APP;
+  var name = _config$APP.name;
+  var version = _config$APP.version;
+
+  exports['default'] = AppVersionComponent['default'].extend({
+    version: version,
+    name: name
+  });
+
+});
 define('elosh-client/components/art-modal', ['exports', 'ember', 'elosh-client/mixins/components/art-modal-height-management', 'elosh-client/mixins/components/art-modal-loading-management', 'elosh-client/mixins/components/art-modal-keyboard-navigation', 'elosh-client/mixins/components/art-modal-close-intent'], function (exports, Ember, HeightManagement, LoadingManagement, KeyboardNavigation, CloseIntent) {
 
   'use strict';
@@ -194,10 +208,25 @@ define('elosh-client/initializers/active-model-adapter', ['exports', 'active-mod
 
   exports['default'] = {
     name: 'active-model-adapter',
-    initialize: function initialize(registry, application) {
-      registry.register('adapter:-active-model', ActiveModelAdapter['default']);
-      registry.register('serializer:-active-model', ActiveModelSerializer['default']);
+    initialize: function initialize() {
+      var application = arguments[1] || arguments[0];
+      application.register('adapter:-active-model', ActiveModelAdapter['default']);
+      application.register('serializer:-active-model', ActiveModelSerializer['default']);
     }
+  };
+
+});
+define('elosh-client/initializers/app-version', ['exports', 'ember-cli-app-version/initializer-factory', 'elosh-client/config/environment'], function (exports, initializerFactory, config) {
+
+  'use strict';
+
+  var _config$APP = config['default'].APP;
+  var name = _config$APP.name;
+  var version = _config$APP.version;
+
+  exports['default'] = {
+    name: 'App Version',
+    initialize: initializerFactory['default'](name, version)
   };
 
 });
@@ -246,48 +275,21 @@ define('elosh-client/instance-initializers/active-model-adapter', ['exports', 'a
   exports['default'] = {
     name: 'active-model-adapter',
     initialize: function initialize(applicationOrRegistry) {
-      var registry, container;
-      if (applicationOrRegistry.registry && applicationOrRegistry.container) {
+      var registry;
+      if (applicationOrRegistry.registry) {
         // initializeStoreService was registered with an
         // instanceInitializer. The first argument is the application
         // instance.
         registry = applicationOrRegistry.registry;
-        container = applicationOrRegistry.container;
       } else {
         // initializeStoreService was called by an initializer instead of
         // an instanceInitializer. The first argument is a registy. This
         // case allows ED to support Ember pre 1.12
         registry = applicationOrRegistry;
-        if (registry.container) {
-          // Support Ember 1.10 - 1.11
-          container = registry.container();
-        } else {
-          // Support Ember 1.9
-          container = registry;
-        }
       }
 
       registry.register('adapter:-active-model', ActiveModelAdapter['default']);
       registry.register('serializer:-active-model', ActiveModelSerializer['default']);
-    }
-  };
-
-});
-define('elosh-client/instance-initializers/app-version', ['exports', 'elosh-client/config/environment', 'ember'], function (exports, config, Ember) {
-
-  'use strict';
-
-  var classify = Ember['default'].String.classify;
-  var registered = false;
-
-  exports['default'] = {
-    name: 'App Version',
-    initialize: function initialize(application) {
-      if (!registered) {
-        var appName = classify(application.toString());
-        Ember['default'].libraries.register(appName, config['default'].APP.version);
-        registered = true;
-      }
     }
   };
 
@@ -699,13 +701,13 @@ define('elosh-client/router', ['exports', 'ember', 'elosh-client/config/environm
 
   Router.map(function () {
 
-    this.resource('artwork', function () {
+    this.route('artwork', function () {
       this.route('category', { path: ':category_slug' }, function () {
         this.route('show', { path: ':artwork_slug' });
       });
     });
 
-    this.resource('books', function () {
+    this.route('books', function () {
       this.route('show', { path: ':book_slug' }, function () {
         this.route('bookPage', { path: ':book_page' });
       });
@@ -1097,7 +1099,7 @@ define('elosh-client/templates/about', ['exports'], function (exports) {
       var child0 = (function() {
         return {
           meta: {
-            "revision": "Ember@1.13.6",
+            "revision": "Ember@2.0.2",
             "loc": {
               "source": null,
               "start": {
@@ -1148,7 +1150,7 @@ define('elosh-client/templates/about', ['exports'], function (exports) {
       var child1 = (function() {
         return {
           meta: {
-            "revision": "Ember@1.13.6",
+            "revision": "Ember@2.0.2",
             "loc": {
               "source": null,
               "start": {
@@ -1192,7 +1194,7 @@ define('elosh-client/templates/about', ['exports'], function (exports) {
       var child2 = (function() {
         return {
           meta: {
-            "revision": "Ember@1.13.6",
+            "revision": "Ember@2.0.2",
             "loc": {
               "source": null,
               "start": {
@@ -1247,7 +1249,7 @@ define('elosh-client/templates/about', ['exports'], function (exports) {
       var child3 = (function() {
         return {
           meta: {
-            "revision": "Ember@1.13.6",
+            "revision": "Ember@2.0.2",
             "loc": {
               "source": null,
               "start": {
@@ -1296,7 +1298,7 @@ define('elosh-client/templates/about', ['exports'], function (exports) {
       var child4 = (function() {
         return {
           meta: {
-            "revision": "Ember@1.13.6",
+            "revision": "Ember@2.0.2",
             "loc": {
               "source": null,
               "start": {
@@ -1349,7 +1351,7 @@ define('elosh-client/templates/about', ['exports'], function (exports) {
       }());
       return {
         meta: {
-          "revision": "Ember@1.13.6",
+          "revision": "Ember@2.0.2",
           "loc": {
             "source": null,
             "start": {
@@ -1434,7 +1436,7 @@ define('elosh-client/templates/about', ['exports'], function (exports) {
     }());
     return {
       meta: {
-        "revision": "Ember@1.13.6",
+        "revision": "Ember@2.0.2",
         "loc": {
           "source": null,
           "start": {
@@ -1497,7 +1499,7 @@ define('elosh-client/templates/application', ['exports'], function (exports) {
     var child0 = (function() {
       return {
         meta: {
-          "revision": "Ember@1.13.6",
+          "revision": "Ember@2.0.2",
           "loc": {
             "source": null,
             "start": {
@@ -1536,7 +1538,7 @@ define('elosh-client/templates/application', ['exports'], function (exports) {
     }());
     return {
       meta: {
-        "revision": "Ember@1.13.6",
+        "revision": "Ember@2.0.2",
         "loc": {
           "source": null,
           "start": {
@@ -1680,7 +1682,7 @@ define('elosh-client/templates/artwork/category/show', ['exports'], function (ex
   exports['default'] = Ember.HTMLBars.template((function() {
     return {
       meta: {
-        "revision": "Ember@1.13.6",
+        "revision": "Ember@2.0.2",
         "loc": {
           "source": null,
           "start": {
@@ -1728,7 +1730,7 @@ define('elosh-client/templates/artwork/category', ['exports'], function (exports
     var child0 = (function() {
       return {
         meta: {
-          "revision": "Ember@1.13.6",
+          "revision": "Ember@2.0.2",
           "loc": {
             "source": null,
             "start": {
@@ -1779,7 +1781,7 @@ define('elosh-client/templates/artwork/category', ['exports'], function (exports
     }());
     return {
       meta: {
-        "revision": "Ember@1.13.6",
+        "revision": "Ember@2.0.2",
         "loc": {
           "source": null,
           "start": {
@@ -1840,7 +1842,7 @@ define('elosh-client/templates/books/show/book-page', ['exports'], function (exp
   exports['default'] = Ember.HTMLBars.template((function() {
     return {
       meta: {
-        "revision": "Ember@1.13.6",
+        "revision": "Ember@2.0.2",
         "loc": {
           "source": null,
           "start": {
@@ -1888,7 +1890,7 @@ define('elosh-client/templates/books/show', ['exports'], function (exports) {
     var child0 = (function() {
       return {
         meta: {
-          "revision": "Ember@1.13.6",
+          "revision": "Ember@2.0.2",
           "loc": {
             "source": null,
             "start": {
@@ -1944,7 +1946,7 @@ define('elosh-client/templates/books/show', ['exports'], function (exports) {
     var child1 = (function() {
       return {
         meta: {
-          "revision": "Ember@1.13.6",
+          "revision": "Ember@2.0.2",
           "loc": {
             "source": null,
             "start": {
@@ -1988,7 +1990,7 @@ define('elosh-client/templates/books/show', ['exports'], function (exports) {
     }());
     return {
       meta: {
-        "revision": "Ember@1.13.6",
+        "revision": "Ember@2.0.2",
         "loc": {
           "source": null,
           "start": {
@@ -2128,7 +2130,7 @@ define('elosh-client/templates/components/art-modal', ['exports'], function (exp
     var child0 = (function() {
       return {
         meta: {
-          "revision": "Ember@1.13.6",
+          "revision": "Ember@2.0.2",
           "loc": {
             "source": null,
             "start": {
@@ -2173,7 +2175,7 @@ define('elosh-client/templates/components/art-modal', ['exports'], function (exp
     var child1 = (function() {
       return {
         meta: {
-          "revision": "Ember@1.13.6",
+          "revision": "Ember@2.0.2",
           "loc": {
             "source": null,
             "start": {
@@ -2214,7 +2216,7 @@ define('elosh-client/templates/components/art-modal', ['exports'], function (exp
     var child2 = (function() {
       return {
         meta: {
-          "revision": "Ember@1.13.6",
+          "revision": "Ember@2.0.2",
           "loc": {
             "source": null,
             "start": {
@@ -2255,7 +2257,7 @@ define('elosh-client/templates/components/art-modal', ['exports'], function (exp
     var child3 = (function() {
       return {
         meta: {
-          "revision": "Ember@1.13.6",
+          "revision": "Ember@2.0.2",
           "loc": {
             "source": null,
             "start": {
@@ -2296,7 +2298,7 @@ define('elosh-client/templates/components/art-modal', ['exports'], function (exp
     var child4 = (function() {
       return {
         meta: {
-          "revision": "Ember@1.13.6",
+          "revision": "Ember@2.0.2",
           "loc": {
             "source": null,
             "start": {
@@ -2336,7 +2338,7 @@ define('elosh-client/templates/components/art-modal', ['exports'], function (exp
     }());
     return {
       meta: {
-        "revision": "Ember@1.13.6",
+        "revision": "Ember@2.0.2",
         "loc": {
           "source": null,
           "start": {
@@ -2466,7 +2468,7 @@ define('elosh-client/templates/components/max-width', ['exports'], function (exp
   exports['default'] = Ember.HTMLBars.template((function() {
     return {
       meta: {
-        "revision": "Ember@1.13.6",
+        "revision": "Ember@2.0.2",
         "loc": {
           "source": null,
           "start": {
@@ -2513,7 +2515,7 @@ define('elosh-client/templates/components/nav-section', ['exports'], function (e
   exports['default'] = Ember.HTMLBars.template((function() {
     return {
       meta: {
-        "revision": "Ember@1.13.6",
+        "revision": "Ember@2.0.2",
         "loc": {
           "source": null,
           "start": {
@@ -2560,7 +2562,7 @@ define('elosh-client/templates/loading', ['exports'], function (exports) {
   exports['default'] = Ember.HTMLBars.template((function() {
     return {
       meta: {
-        "revision": "Ember@1.13.6",
+        "revision": "Ember@2.0.2",
         "loc": {
           "source": null,
           "start": {
@@ -2634,7 +2636,7 @@ define('elosh-client/templates/partials/-artwork-thumbnails', ['exports'], funct
     var child0 = (function() {
       return {
         meta: {
-          "revision": "Ember@1.13.6",
+          "revision": "Ember@2.0.2",
           "loc": {
             "source": null,
             "start": {
@@ -2703,7 +2705,7 @@ define('elosh-client/templates/partials/-artwork-thumbnails', ['exports'], funct
     }());
     return {
       meta: {
-        "revision": "Ember@1.13.6",
+        "revision": "Ember@2.0.2",
         "loc": {
           "source": null,
           "start": {
@@ -2755,7 +2757,7 @@ define('elosh-client/templates/partials/-book-thumbnails', ['exports'], function
     var child0 = (function() {
       return {
         meta: {
-          "revision": "Ember@1.13.6",
+          "revision": "Ember@2.0.2",
           "loc": {
             "source": null,
             "start": {
@@ -2815,7 +2817,7 @@ define('elosh-client/templates/partials/-book-thumbnails', ['exports'], function
     }());
     return {
       meta: {
-        "revision": "Ember@1.13.6",
+        "revision": "Ember@2.0.2",
         "loc": {
           "source": null,
           "start": {
@@ -2868,7 +2870,7 @@ define('elosh-client/templates/partials/-main-navigation', ['exports'], function
       var child0 = (function() {
         return {
           meta: {
-            "revision": "Ember@1.13.6",
+            "revision": "Ember@2.0.2",
             "loc": {
               "source": null,
               "start": {
@@ -2903,7 +2905,7 @@ define('elosh-client/templates/partials/-main-navigation', ['exports'], function
         var child0 = (function() {
           return {
             meta: {
-              "revision": "Ember@1.13.6",
+              "revision": "Ember@2.0.2",
               "loc": {
                 "source": null,
                 "start": {
@@ -2942,7 +2944,7 @@ define('elosh-client/templates/partials/-main-navigation', ['exports'], function
         }());
         return {
           meta: {
-            "revision": "Ember@1.13.6",
+            "revision": "Ember@2.0.2",
             "loc": {
               "source": null,
               "start": {
@@ -2983,7 +2985,7 @@ define('elosh-client/templates/partials/-main-navigation', ['exports'], function
       }());
       return {
         meta: {
-          "revision": "Ember@1.13.6",
+          "revision": "Ember@2.0.2",
           "loc": {
             "source": null,
             "start": {
@@ -3039,7 +3041,7 @@ define('elosh-client/templates/partials/-main-navigation', ['exports'], function
       var child0 = (function() {
         return {
           meta: {
-            "revision": "Ember@1.13.6",
+            "revision": "Ember@2.0.2",
             "loc": {
               "source": null,
               "start": {
@@ -3074,7 +3076,7 @@ define('elosh-client/templates/partials/-main-navigation', ['exports'], function
         var child0 = (function() {
           return {
             meta: {
-              "revision": "Ember@1.13.6",
+              "revision": "Ember@2.0.2",
               "loc": {
                 "source": null,
                 "start": {
@@ -3113,7 +3115,7 @@ define('elosh-client/templates/partials/-main-navigation', ['exports'], function
         }());
         return {
           meta: {
-            "revision": "Ember@1.13.6",
+            "revision": "Ember@2.0.2",
             "loc": {
               "source": null,
               "start": {
@@ -3154,7 +3156,7 @@ define('elosh-client/templates/partials/-main-navigation', ['exports'], function
       }());
       return {
         meta: {
-          "revision": "Ember@1.13.6",
+          "revision": "Ember@2.0.2",
           "loc": {
             "source": null,
             "start": {
@@ -3210,7 +3212,7 @@ define('elosh-client/templates/partials/-main-navigation', ['exports'], function
       var child0 = (function() {
         return {
           meta: {
-            "revision": "Ember@1.13.6",
+            "revision": "Ember@2.0.2",
             "loc": {
               "source": null,
               "start": {
@@ -3260,7 +3262,7 @@ define('elosh-client/templates/partials/-main-navigation', ['exports'], function
       }());
       return {
         meta: {
-          "revision": "Ember@1.13.6",
+          "revision": "Ember@2.0.2",
           "loc": {
             "source": null,
             "start": {
@@ -3321,7 +3323,7 @@ define('elosh-client/templates/partials/-main-navigation', ['exports'], function
     }());
     return {
       meta: {
-        "revision": "Ember@1.13.6",
+        "revision": "Ember@2.0.2",
         "loc": {
           "source": null,
           "start": {
@@ -3429,9 +3431,9 @@ define('elosh-client/tests/adapters/about.jshint', function () {
 
   'use strict';
 
-  module('JSHint - adapters');
-  test('adapters/about.js should pass jshint', function() { 
-    ok(true, 'adapters/about.js should pass jshint.'); 
+  QUnit.module('JSHint - adapters');
+  QUnit.test('adapters/about.js should pass jshint', function(assert) { 
+    assert.ok(true, 'adapters/about.js should pass jshint.'); 
   });
 
 });
@@ -3439,9 +3441,9 @@ define('elosh-client/tests/adapters/application.jshint', function () {
 
   'use strict';
 
-  module('JSHint - adapters');
-  test('adapters/application.js should pass jshint', function() { 
-    ok(true, 'adapters/application.js should pass jshint.'); 
+  QUnit.module('JSHint - adapters');
+  QUnit.test('adapters/application.js should pass jshint', function(assert) { 
+    assert.ok(true, 'adapters/application.js should pass jshint.'); 
   });
 
 });
@@ -3449,9 +3451,9 @@ define('elosh-client/tests/adapters/contact.jshint', function () {
 
   'use strict';
 
-  module('JSHint - adapters');
-  test('adapters/contact.js should pass jshint', function() { 
-    ok(true, 'adapters/contact.js should pass jshint.'); 
+  QUnit.module('JSHint - adapters');
+  QUnit.test('adapters/contact.js should pass jshint', function(assert) { 
+    assert.ok(true, 'adapters/contact.js should pass jshint.'); 
   });
 
 });
@@ -3459,9 +3461,9 @@ define('elosh-client/tests/app.jshint', function () {
 
   'use strict';
 
-  module('JSHint - .');
-  test('app.js should pass jshint', function() { 
-    ok(true, 'app.js should pass jshint.'); 
+  QUnit.module('JSHint - .');
+  QUnit.test('app.js should pass jshint', function(assert) { 
+    assert.ok(true, 'app.js should pass jshint.'); 
   });
 
 });
@@ -3469,9 +3471,9 @@ define('elosh-client/tests/components/art-modal.jshint', function () {
 
   'use strict';
 
-  module('JSHint - components');
-  test('components/art-modal.js should pass jshint', function() { 
-    ok(true, 'components/art-modal.js should pass jshint.'); 
+  QUnit.module('JSHint - components');
+  QUnit.test('components/art-modal.js should pass jshint', function(assert) { 
+    assert.ok(true, 'components/art-modal.js should pass jshint.'); 
   });
 
 });
@@ -3479,9 +3481,9 @@ define('elosh-client/tests/components/max-width.jshint', function () {
 
   'use strict';
 
-  module('JSHint - components');
-  test('components/max-width.js should pass jshint', function() { 
-    ok(true, 'components/max-width.js should pass jshint.'); 
+  QUnit.module('JSHint - components');
+  QUnit.test('components/max-width.js should pass jshint', function(assert) { 
+    assert.ok(true, 'components/max-width.js should pass jshint.'); 
   });
 
 });
@@ -3489,9 +3491,9 @@ define('elosh-client/tests/components/nav-section.jshint', function () {
 
   'use strict';
 
-  module('JSHint - components');
-  test('components/nav-section.js should pass jshint', function() { 
-    ok(true, 'components/nav-section.js should pass jshint.'); 
+  QUnit.module('JSHint - components');
+  QUnit.test('components/nav-section.js should pass jshint', function(assert) { 
+    assert.ok(true, 'components/nav-section.js should pass jshint.'); 
   });
 
 });
@@ -3499,9 +3501,9 @@ define('elosh-client/tests/controllers/application.jshint', function () {
 
   'use strict';
 
-  module('JSHint - controllers');
-  test('controllers/application.js should pass jshint', function() { 
-    ok(true, 'controllers/application.js should pass jshint.'); 
+  QUnit.module('JSHint - controllers');
+  QUnit.test('controllers/application.js should pass jshint', function(assert) { 
+    assert.ok(true, 'controllers/application.js should pass jshint.'); 
   });
 
 });
@@ -3523,9 +3525,9 @@ define('elosh-client/tests/helpers/resolver.jshint', function () {
 
   'use strict';
 
-  module('JSHint - helpers');
-  test('helpers/resolver.js should pass jshint', function() { 
-    ok(true, 'helpers/resolver.js should pass jshint.'); 
+  QUnit.module('JSHint - helpers');
+  QUnit.test('helpers/resolver.js should pass jshint', function(assert) { 
+    assert.ok(true, 'helpers/resolver.js should pass jshint.'); 
   });
 
 });
@@ -3556,9 +3558,9 @@ define('elosh-client/tests/helpers/start-app.jshint', function () {
 
   'use strict';
 
-  module('JSHint - helpers');
-  test('helpers/start-app.js should pass jshint', function() { 
-    ok(true, 'helpers/start-app.js should pass jshint.'); 
+  QUnit.module('JSHint - helpers');
+  QUnit.test('helpers/start-app.js should pass jshint', function(assert) { 
+    assert.ok(true, 'helpers/start-app.js should pass jshint.'); 
   });
 
 });
@@ -3566,9 +3568,9 @@ define('elosh-client/tests/mixins/components/art-modal-close-intent.jshint', fun
 
   'use strict';
 
-  module('JSHint - mixins/components');
-  test('mixins/components/art-modal-close-intent.js should pass jshint', function() { 
-    ok(true, 'mixins/components/art-modal-close-intent.js should pass jshint.'); 
+  QUnit.module('JSHint - mixins/components');
+  QUnit.test('mixins/components/art-modal-close-intent.js should pass jshint', function(assert) { 
+    assert.ok(true, 'mixins/components/art-modal-close-intent.js should pass jshint.'); 
   });
 
 });
@@ -3576,9 +3578,9 @@ define('elosh-client/tests/mixins/components/art-modal-height-management.jshint'
 
   'use strict';
 
-  module('JSHint - mixins/components');
-  test('mixins/components/art-modal-height-management.js should pass jshint', function() { 
-    ok(true, 'mixins/components/art-modal-height-management.js should pass jshint.'); 
+  QUnit.module('JSHint - mixins/components');
+  QUnit.test('mixins/components/art-modal-height-management.js should pass jshint', function(assert) { 
+    assert.ok(true, 'mixins/components/art-modal-height-management.js should pass jshint.'); 
   });
 
 });
@@ -3586,9 +3588,9 @@ define('elosh-client/tests/mixins/components/art-modal-keyboard-navigation.jshin
 
   'use strict';
 
-  module('JSHint - mixins/components');
-  test('mixins/components/art-modal-keyboard-navigation.js should pass jshint', function() { 
-    ok(true, 'mixins/components/art-modal-keyboard-navigation.js should pass jshint.'); 
+  QUnit.module('JSHint - mixins/components');
+  QUnit.test('mixins/components/art-modal-keyboard-navigation.js should pass jshint', function(assert) { 
+    assert.ok(true, 'mixins/components/art-modal-keyboard-navigation.js should pass jshint.'); 
   });
 
 });
@@ -3596,9 +3598,9 @@ define('elosh-client/tests/mixins/components/art-modal-loading-management.jshint
 
   'use strict';
 
-  module('JSHint - mixins/components');
-  test('mixins/components/art-modal-loading-management.js should pass jshint', function() { 
-    ok(true, 'mixins/components/art-modal-loading-management.js should pass jshint.'); 
+  QUnit.module('JSHint - mixins/components');
+  QUnit.test('mixins/components/art-modal-loading-management.js should pass jshint', function(assert) { 
+    assert.ok(true, 'mixins/components/art-modal-loading-management.js should pass jshint.'); 
   });
 
 });
@@ -3606,9 +3608,9 @@ define('elosh-client/tests/mixins/routes/redirect-to-first-item.jshint', functio
 
   'use strict';
 
-  module('JSHint - mixins/routes');
-  test('mixins/routes/redirect-to-first-item.js should pass jshint', function() { 
-    ok(true, 'mixins/routes/redirect-to-first-item.js should pass jshint.'); 
+  QUnit.module('JSHint - mixins/routes');
+  QUnit.test('mixins/routes/redirect-to-first-item.js should pass jshint', function(assert) { 
+    assert.ok(true, 'mixins/routes/redirect-to-first-item.js should pass jshint.'); 
   });
 
 });
@@ -3616,9 +3618,9 @@ define('elosh-client/tests/mixins/routes/scroll-to-top.jshint', function () {
 
   'use strict';
 
-  module('JSHint - mixins/routes');
-  test('mixins/routes/scroll-to-top.js should pass jshint', function() { 
-    ok(true, 'mixins/routes/scroll-to-top.js should pass jshint.'); 
+  QUnit.module('JSHint - mixins/routes');
+  QUnit.test('mixins/routes/scroll-to-top.js should pass jshint', function(assert) { 
+    assert.ok(true, 'mixins/routes/scroll-to-top.js should pass jshint.'); 
   });
 
 });
@@ -3626,9 +3628,9 @@ define('elosh-client/tests/models/about.jshint', function () {
 
   'use strict';
 
-  module('JSHint - models');
-  test('models/about.js should pass jshint', function() { 
-    ok(true, 'models/about.js should pass jshint.'); 
+  QUnit.module('JSHint - models');
+  QUnit.test('models/about.js should pass jshint', function(assert) { 
+    assert.ok(true, 'models/about.js should pass jshint.'); 
   });
 
 });
@@ -3636,9 +3638,9 @@ define('elosh-client/tests/models/artwork-category.jshint', function () {
 
   'use strict';
 
-  module('JSHint - models');
-  test('models/artwork-category.js should pass jshint', function() { 
-    ok(true, 'models/artwork-category.js should pass jshint.'); 
+  QUnit.module('JSHint - models');
+  QUnit.test('models/artwork-category.js should pass jshint', function(assert) { 
+    assert.ok(true, 'models/artwork-category.js should pass jshint.'); 
   });
 
 });
@@ -3646,9 +3648,9 @@ define('elosh-client/tests/models/artwork.jshint', function () {
 
   'use strict';
 
-  module('JSHint - models');
-  test('models/artwork.js should pass jshint', function() { 
-    ok(true, 'models/artwork.js should pass jshint.'); 
+  QUnit.module('JSHint - models');
+  QUnit.test('models/artwork.js should pass jshint', function(assert) { 
+    assert.ok(true, 'models/artwork.js should pass jshint.'); 
   });
 
 });
@@ -3656,9 +3658,9 @@ define('elosh-client/tests/models/book.jshint', function () {
 
   'use strict';
 
-  module('JSHint - models');
-  test('models/book.js should pass jshint', function() { 
-    ok(true, 'models/book.js should pass jshint.'); 
+  QUnit.module('JSHint - models');
+  QUnit.test('models/book.js should pass jshint', function(assert) { 
+    assert.ok(true, 'models/book.js should pass jshint.'); 
   });
 
 });
@@ -3666,9 +3668,9 @@ define('elosh-client/tests/models/contact.jshint', function () {
 
   'use strict';
 
-  module('JSHint - models');
-  test('models/contact.js should pass jshint', function() { 
-    ok(true, 'models/contact.js should pass jshint.'); 
+  QUnit.module('JSHint - models');
+  QUnit.test('models/contact.js should pass jshint', function(assert) { 
+    assert.ok(true, 'models/contact.js should pass jshint.'); 
   });
 
 });
@@ -3676,9 +3678,9 @@ define('elosh-client/tests/models/image-object.jshint', function () {
 
   'use strict';
 
-  module('JSHint - models');
-  test('models/image-object.js should pass jshint', function() { 
-    ok(true, 'models/image-object.js should pass jshint.'); 
+  QUnit.module('JSHint - models');
+  QUnit.test('models/image-object.js should pass jshint', function(assert) { 
+    assert.ok(true, 'models/image-object.js should pass jshint.'); 
   });
 
 });
@@ -3686,9 +3688,9 @@ define('elosh-client/tests/router.jshint', function () {
 
   'use strict';
 
-  module('JSHint - .');
-  test('router.js should pass jshint', function() { 
-    ok(true, 'router.js should pass jshint.'); 
+  QUnit.module('JSHint - .');
+  QUnit.test('router.js should pass jshint', function(assert) { 
+    assert.ok(true, 'router.js should pass jshint.'); 
   });
 
 });
@@ -3696,9 +3698,9 @@ define('elosh-client/tests/routes/about.jshint', function () {
 
   'use strict';
 
-  module('JSHint - routes');
-  test('routes/about.js should pass jshint', function() { 
-    ok(true, 'routes/about.js should pass jshint.'); 
+  QUnit.module('JSHint - routes');
+  QUnit.test('routes/about.js should pass jshint', function(assert) { 
+    assert.ok(true, 'routes/about.js should pass jshint.'); 
   });
 
 });
@@ -3706,9 +3708,9 @@ define('elosh-client/tests/routes/application.jshint', function () {
 
   'use strict';
 
-  module('JSHint - routes');
-  test('routes/application.js should pass jshint', function() { 
-    ok(true, 'routes/application.js should pass jshint.'); 
+  QUnit.module('JSHint - routes');
+  QUnit.test('routes/application.js should pass jshint', function(assert) { 
+    assert.ok(true, 'routes/application.js should pass jshint.'); 
   });
 
 });
@@ -3716,9 +3718,9 @@ define('elosh-client/tests/routes/artwork/category/show.jshint', function () {
 
   'use strict';
 
-  module('JSHint - routes/artwork/category');
-  test('routes/artwork/category/show.js should pass jshint', function() { 
-    ok(true, 'routes/artwork/category/show.js should pass jshint.'); 
+  QUnit.module('JSHint - routes/artwork/category');
+  QUnit.test('routes/artwork/category/show.js should pass jshint', function(assert) { 
+    assert.ok(true, 'routes/artwork/category/show.js should pass jshint.'); 
   });
 
 });
@@ -3726,9 +3728,9 @@ define('elosh-client/tests/routes/artwork/category.jshint', function () {
 
   'use strict';
 
-  module('JSHint - routes/artwork');
-  test('routes/artwork/category.js should pass jshint', function() { 
-    ok(true, 'routes/artwork/category.js should pass jshint.'); 
+  QUnit.module('JSHint - routes/artwork');
+  QUnit.test('routes/artwork/category.js should pass jshint', function(assert) { 
+    assert.ok(true, 'routes/artwork/category.js should pass jshint.'); 
   });
 
 });
@@ -3736,9 +3738,9 @@ define('elosh-client/tests/routes/artwork/index.jshint', function () {
 
   'use strict';
 
-  module('JSHint - routes/artwork');
-  test('routes/artwork/index.js should pass jshint', function() { 
-    ok(true, 'routes/artwork/index.js should pass jshint.'); 
+  QUnit.module('JSHint - routes/artwork');
+  QUnit.test('routes/artwork/index.js should pass jshint', function(assert) { 
+    assert.ok(true, 'routes/artwork/index.js should pass jshint.'); 
   });
 
 });
@@ -3746,9 +3748,9 @@ define('elosh-client/tests/routes/artwork.jshint', function () {
 
   'use strict';
 
-  module('JSHint - routes');
-  test('routes/artwork.js should pass jshint', function() { 
-    ok(true, 'routes/artwork.js should pass jshint.'); 
+  QUnit.module('JSHint - routes');
+  QUnit.test('routes/artwork.js should pass jshint', function(assert) { 
+    assert.ok(true, 'routes/artwork.js should pass jshint.'); 
   });
 
 });
@@ -3756,9 +3758,9 @@ define('elosh-client/tests/routes/books/index.jshint', function () {
 
   'use strict';
 
-  module('JSHint - routes/books');
-  test('routes/books/index.js should pass jshint', function() { 
-    ok(true, 'routes/books/index.js should pass jshint.'); 
+  QUnit.module('JSHint - routes/books');
+  QUnit.test('routes/books/index.js should pass jshint', function(assert) { 
+    assert.ok(true, 'routes/books/index.js should pass jshint.'); 
   });
 
 });
@@ -3766,9 +3768,9 @@ define('elosh-client/tests/routes/books/show/book-page.jshint', function () {
 
   'use strict';
 
-  module('JSHint - routes/books/show');
-  test('routes/books/show/book-page.js should pass jshint', function() { 
-    ok(true, 'routes/books/show/book-page.js should pass jshint.'); 
+  QUnit.module('JSHint - routes/books/show');
+  QUnit.test('routes/books/show/book-page.js should pass jshint', function(assert) { 
+    assert.ok(true, 'routes/books/show/book-page.js should pass jshint.'); 
   });
 
 });
@@ -3776,9 +3778,9 @@ define('elosh-client/tests/routes/books/show.jshint', function () {
 
   'use strict';
 
-  module('JSHint - routes/books');
-  test('routes/books/show.js should pass jshint', function() { 
-    ok(true, 'routes/books/show.js should pass jshint.'); 
+  QUnit.module('JSHint - routes/books');
+  QUnit.test('routes/books/show.js should pass jshint', function(assert) { 
+    assert.ok(true, 'routes/books/show.js should pass jshint.'); 
   });
 
 });
@@ -3786,9 +3788,9 @@ define('elosh-client/tests/routes/index.jshint', function () {
 
   'use strict';
 
-  module('JSHint - routes');
-  test('routes/index.js should pass jshint', function() { 
-    ok(true, 'routes/index.js should pass jshint.'); 
+  QUnit.module('JSHint - routes');
+  QUnit.test('routes/index.js should pass jshint', function(assert) { 
+    assert.ok(true, 'routes/index.js should pass jshint.'); 
   });
 
 });
@@ -3796,9 +3798,9 @@ define('elosh-client/tests/serializers/about.jshint', function () {
 
   'use strict';
 
-  module('JSHint - serializers');
-  test('serializers/about.js should pass jshint', function() { 
-    ok(true, 'serializers/about.js should pass jshint.'); 
+  QUnit.module('JSHint - serializers');
+  QUnit.test('serializers/about.js should pass jshint', function(assert) { 
+    assert.ok(true, 'serializers/about.js should pass jshint.'); 
   });
 
 });
@@ -3806,9 +3808,9 @@ define('elosh-client/tests/serializers/application.jshint', function () {
 
   'use strict';
 
-  module('JSHint - serializers');
-  test('serializers/application.js should pass jshint', function() { 
-    ok(true, 'serializers/application.js should pass jshint.'); 
+  QUnit.module('JSHint - serializers');
+  QUnit.test('serializers/application.js should pass jshint', function(assert) { 
+    assert.ok(true, 'serializers/application.js should pass jshint.'); 
   });
 
 });
@@ -3816,9 +3818,9 @@ define('elosh-client/tests/serializers/artwork-category.jshint', function () {
 
   'use strict';
 
-  module('JSHint - serializers');
-  test('serializers/artwork-category.js should pass jshint', function() { 
-    ok(true, 'serializers/artwork-category.js should pass jshint.'); 
+  QUnit.module('JSHint - serializers');
+  QUnit.test('serializers/artwork-category.js should pass jshint', function(assert) { 
+    assert.ok(true, 'serializers/artwork-category.js should pass jshint.'); 
   });
 
 });
@@ -3826,9 +3828,9 @@ define('elosh-client/tests/serializers/artwork.jshint', function () {
 
   'use strict';
 
-  module('JSHint - serializers');
-  test('serializers/artwork.js should pass jshint', function() { 
-    ok(true, 'serializers/artwork.js should pass jshint.'); 
+  QUnit.module('JSHint - serializers');
+  QUnit.test('serializers/artwork.js should pass jshint', function(assert) { 
+    assert.ok(true, 'serializers/artwork.js should pass jshint.'); 
   });
 
 });
@@ -3836,9 +3838,9 @@ define('elosh-client/tests/serializers/book.jshint', function () {
 
   'use strict';
 
-  module('JSHint - serializers');
-  test('serializers/book.js should pass jshint', function() { 
-    ok(true, 'serializers/book.js should pass jshint.'); 
+  QUnit.module('JSHint - serializers');
+  QUnit.test('serializers/book.js should pass jshint', function(assert) { 
+    assert.ok(true, 'serializers/book.js should pass jshint.'); 
   });
 
 });
@@ -3853,9 +3855,9 @@ define('elosh-client/tests/test-helper.jshint', function () {
 
   'use strict';
 
-  module('JSHint - .');
-  test('test-helper.js should pass jshint', function() { 
-    ok(true, 'test-helper.js should pass jshint.'); 
+  QUnit.module('JSHint - .');
+  QUnit.test('test-helper.js should pass jshint', function(assert) { 
+    assert.ok(true, 'test-helper.js should pass jshint.'); 
   });
 
 });
@@ -3887,7 +3889,7 @@ catch(err) {
 if (runningTests) {
   require("elosh-client/tests/test-helper");
 } else {
-  require("elosh-client/app")["default"].create({"name":"elosh-client","version":"0.0.0+7b08467e"});
+  require("elosh-client/app")["default"].create({"name":"elosh-client","version":"0.0.0+d7b260b3"});
 }
 
 /* jshint ignore:end */
