@@ -6,29 +6,23 @@ export default Ember.Component.extend({
 
   closedHeight: 20,
 
-  _setHeight: function() {
-    if(!this.$()) { return; }
+  _update: Ember.on('didReceiveAttrs', function() {
+    Ember.run.schedule('afterRender', () => this._setHeight());
+  }),
 
+  _setHeight: function() {
     var height = this.get('closedHeight');
-    if(this.get('open')) {
+    var open = this._checkIfOpen();
+
+    if(open) {
       height = this.$().find('.links').outerHeight() + this.get('closedHeight');
     }
 
     this.$().css({ height: height });
   },
 
-  _setOpenHeight: Ember.on('didInsertElement', function() {
-    this._setHeight();
-  }),
-
-  _openObserver: Ember.observer('open', function() {
-    this._setHeight();
-  }),
-
-  _currentPathChange: Ember.observer('currentPath', function() {
-    var parentRoute = this.get('currentPath').split('.').objectAt(0),
-        open = parentRoute === this.get('path');
-
-    this.set('open', open);
-  })
+  _checkIfOpen: function() {
+    var parentRoute = this.get('currentPath').split('.').objectAt(0);
+    return parentRoute === this.get('path');
+  }
 });

@@ -131,33 +131,29 @@ define('elosh-client/components/nav-section', ['exports', 'ember'], function (ex
 
     closedHeight: 20,
 
-    _setHeight: function _setHeight() {
-      if (!this.$()) {
-        return;
-      }
+    _update: Ember['default'].on('didReceiveAttrs', function () {
+      var _this = this;
 
+      Ember['default'].run.schedule('afterRender', function () {
+        return _this._setHeight();
+      });
+    }),
+
+    _setHeight: function _setHeight() {
       var height = this.get('closedHeight');
-      if (this.get('open')) {
+      var open = this._checkIfOpen();
+
+      if (open) {
         height = this.$().find('.links').outerHeight() + this.get('closedHeight');
       }
 
       this.$().css({ height: height });
     },
 
-    _setOpenHeight: Ember['default'].on('didInsertElement', function () {
-      this._setHeight();
-    }),
-
-    _openObserver: Ember['default'].observer('open', function () {
-      this._setHeight();
-    }),
-
-    _currentPathChange: Ember['default'].observer('currentPath', function () {
-      var parentRoute = this.get('currentPath').split('.').objectAt(0),
-          open = parentRoute === this.get('path');
-
-      this.set('open', open);
-    })
+    _checkIfOpen: function _checkIfOpen() {
+      var parentRoute = this.get('currentPath').split('.').objectAt(0);
+      return parentRoute === this.get('path');
+    }
   });
 
 });
@@ -1099,7 +1095,8 @@ define('elosh-client/templates/about', ['exports'], function (exports) {
       var child0 = (function() {
         return {
           meta: {
-            "revision": "Ember@2.0.2",
+            "topLevel": null,
+            "revision": "Ember@2.1.0",
             "loc": {
               "source": null,
               "start": {
@@ -1113,6 +1110,7 @@ define('elosh-client/templates/about', ['exports'], function (exports) {
             },
             "moduleName": "elosh-client/templates/about.hbs"
           },
+          isEmpty: false,
           arity: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -1150,7 +1148,8 @@ define('elosh-client/templates/about', ['exports'], function (exports) {
       var child1 = (function() {
         return {
           meta: {
-            "revision": "Ember@2.0.2",
+            "topLevel": null,
+            "revision": "Ember@2.1.0",
             "loc": {
               "source": null,
               "start": {
@@ -1164,6 +1163,7 @@ define('elosh-client/templates/about', ['exports'], function (exports) {
             },
             "moduleName": "elosh-client/templates/about.hbs"
           },
+          isEmpty: false,
           arity: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -1194,7 +1194,8 @@ define('elosh-client/templates/about', ['exports'], function (exports) {
       var child2 = (function() {
         return {
           meta: {
-            "revision": "Ember@2.0.2",
+            "topLevel": null,
+            "revision": "Ember@2.1.0",
             "loc": {
               "source": null,
               "start": {
@@ -1208,6 +1209,7 @@ define('elosh-client/templates/about', ['exports'], function (exports) {
             },
             "moduleName": "elosh-client/templates/about.hbs"
           },
+          isEmpty: false,
           arity: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -1249,7 +1251,8 @@ define('elosh-client/templates/about', ['exports'], function (exports) {
       var child3 = (function() {
         return {
           meta: {
-            "revision": "Ember@2.0.2",
+            "topLevel": null,
+            "revision": "Ember@2.1.0",
             "loc": {
               "source": null,
               "start": {
@@ -1263,6 +1266,7 @@ define('elosh-client/templates/about', ['exports'], function (exports) {
             },
             "moduleName": "elosh-client/templates/about.hbs"
           },
+          isEmpty: false,
           arity: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -1298,7 +1302,8 @@ define('elosh-client/templates/about', ['exports'], function (exports) {
       var child4 = (function() {
         return {
           meta: {
-            "revision": "Ember@2.0.2",
+            "topLevel": null,
+            "revision": "Ember@2.1.0",
             "loc": {
               "source": null,
               "start": {
@@ -1312,6 +1317,7 @@ define('elosh-client/templates/about', ['exports'], function (exports) {
             },
             "moduleName": "elosh-client/templates/about.hbs"
           },
+          isEmpty: false,
           arity: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -1351,7 +1357,8 @@ define('elosh-client/templates/about', ['exports'], function (exports) {
       }());
       return {
         meta: {
-          "revision": "Ember@2.0.2",
+          "topLevel": null,
+          "revision": "Ember@2.1.0",
           "loc": {
             "source": null,
             "start": {
@@ -1365,6 +1372,7 @@ define('elosh-client/templates/about', ['exports'], function (exports) {
           },
           "moduleName": "elosh-client/templates/about.hbs"
         },
+        isEmpty: false,
         arity: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -1436,7 +1444,8 @@ define('elosh-client/templates/about', ['exports'], function (exports) {
     }());
     return {
       meta: {
-        "revision": "Ember@2.0.2",
+        "topLevel": null,
+        "revision": "Ember@2.1.0",
         "loc": {
           "source": null,
           "start": {
@@ -1450,6 +1459,7 @@ define('elosh-client/templates/about', ['exports'], function (exports) {
         },
         "moduleName": "elosh-client/templates/about.hbs"
       },
+      isEmpty: false,
       arity: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -1499,7 +1509,8 @@ define('elosh-client/templates/application', ['exports'], function (exports) {
     var child0 = (function() {
       return {
         meta: {
-          "revision": "Ember@2.0.2",
+          "topLevel": null,
+          "revision": "Ember@2.1.0",
           "loc": {
             "source": null,
             "start": {
@@ -1513,6 +1524,7 @@ define('elosh-client/templates/application', ['exports'], function (exports) {
           },
           "moduleName": "elosh-client/templates/application.hbs"
         },
+        isEmpty: false,
         arity: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -1538,7 +1550,8 @@ define('elosh-client/templates/application', ['exports'], function (exports) {
     }());
     return {
       meta: {
-        "revision": "Ember@2.0.2",
+        "topLevel": false,
+        "revision": "Ember@2.1.0",
         "loc": {
           "source": null,
           "start": {
@@ -1552,6 +1565,7 @@ define('elosh-client/templates/application', ['exports'], function (exports) {
         },
         "moduleName": "elosh-client/templates/application.hbs"
       },
+      isEmpty: false,
       arity: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -1682,7 +1696,8 @@ define('elosh-client/templates/artwork/category/show', ['exports'], function (ex
   exports['default'] = Ember.HTMLBars.template((function() {
     return {
       meta: {
-        "revision": "Ember@2.0.2",
+        "topLevel": null,
+        "revision": "Ember@2.1.0",
         "loc": {
           "source": null,
           "start": {
@@ -1696,6 +1711,7 @@ define('elosh-client/templates/artwork/category/show', ['exports'], function (ex
         },
         "moduleName": "elosh-client/templates/artwork/category/show.hbs"
       },
+      isEmpty: false,
       arity: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -1730,7 +1746,8 @@ define('elosh-client/templates/artwork/category', ['exports'], function (exports
     var child0 = (function() {
       return {
         meta: {
-          "revision": "Ember@2.0.2",
+          "topLevel": null,
+          "revision": "Ember@2.1.0",
           "loc": {
             "source": null,
             "start": {
@@ -1744,6 +1761,7 @@ define('elosh-client/templates/artwork/category', ['exports'], function (exports
           },
           "moduleName": "elosh-client/templates/artwork/category.hbs"
         },
+        isEmpty: false,
         arity: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -1781,7 +1799,8 @@ define('elosh-client/templates/artwork/category', ['exports'], function (exports
     }());
     return {
       meta: {
-        "revision": "Ember@2.0.2",
+        "topLevel": false,
+        "revision": "Ember@2.1.0",
         "loc": {
           "source": null,
           "start": {
@@ -1795,6 +1814,7 @@ define('elosh-client/templates/artwork/category', ['exports'], function (exports
         },
         "moduleName": "elosh-client/templates/artwork/category.hbs"
       },
+      isEmpty: false,
       arity: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -1842,7 +1862,8 @@ define('elosh-client/templates/books/show/book-page', ['exports'], function (exp
   exports['default'] = Ember.HTMLBars.template((function() {
     return {
       meta: {
-        "revision": "Ember@2.0.2",
+        "topLevel": null,
+        "revision": "Ember@2.1.0",
         "loc": {
           "source": null,
           "start": {
@@ -1856,6 +1877,7 @@ define('elosh-client/templates/books/show/book-page', ['exports'], function (exp
         },
         "moduleName": "elosh-client/templates/books/show/book-page.hbs"
       },
+      isEmpty: false,
       arity: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -1890,7 +1912,8 @@ define('elosh-client/templates/books/show', ['exports'], function (exports) {
     var child0 = (function() {
       return {
         meta: {
-          "revision": "Ember@2.0.2",
+          "topLevel": null,
+          "revision": "Ember@2.1.0",
           "loc": {
             "source": null,
             "start": {
@@ -1904,6 +1927,7 @@ define('elosh-client/templates/books/show', ['exports'], function (exports) {
           },
           "moduleName": "elosh-client/templates/books/show.hbs"
         },
+        isEmpty: false,
         arity: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -1946,7 +1970,8 @@ define('elosh-client/templates/books/show', ['exports'], function (exports) {
     var child1 = (function() {
       return {
         meta: {
-          "revision": "Ember@2.0.2",
+          "topLevel": null,
+          "revision": "Ember@2.1.0",
           "loc": {
             "source": null,
             "start": {
@@ -1960,6 +1985,7 @@ define('elosh-client/templates/books/show', ['exports'], function (exports) {
           },
           "moduleName": "elosh-client/templates/books/show.hbs"
         },
+        isEmpty: false,
         arity: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -1990,7 +2016,8 @@ define('elosh-client/templates/books/show', ['exports'], function (exports) {
     }());
     return {
       meta: {
-        "revision": "Ember@2.0.2",
+        "topLevel": null,
+        "revision": "Ember@2.1.0",
         "loc": {
           "source": null,
           "start": {
@@ -2004,6 +2031,7 @@ define('elosh-client/templates/books/show', ['exports'], function (exports) {
         },
         "moduleName": "elosh-client/templates/books/show.hbs"
       },
+      isEmpty: false,
       arity: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -2130,7 +2158,8 @@ define('elosh-client/templates/components/art-modal', ['exports'], function (exp
     var child0 = (function() {
       return {
         meta: {
-          "revision": "Ember@2.0.2",
+          "topLevel": null,
+          "revision": "Ember@2.1.0",
           "loc": {
             "source": null,
             "start": {
@@ -2144,6 +2173,7 @@ define('elosh-client/templates/components/art-modal', ['exports'], function (exp
           },
           "moduleName": "elosh-client/templates/components/art-modal.hbs"
         },
+        isEmpty: false,
         arity: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -2175,7 +2205,8 @@ define('elosh-client/templates/components/art-modal', ['exports'], function (exp
     var child1 = (function() {
       return {
         meta: {
-          "revision": "Ember@2.0.2",
+          "topLevel": null,
+          "revision": "Ember@2.1.0",
           "loc": {
             "source": null,
             "start": {
@@ -2189,6 +2220,7 @@ define('elosh-client/templates/components/art-modal', ['exports'], function (exp
           },
           "moduleName": "elosh-client/templates/components/art-modal.hbs"
         },
+        isEmpty: false,
         arity: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -2216,7 +2248,8 @@ define('elosh-client/templates/components/art-modal', ['exports'], function (exp
     var child2 = (function() {
       return {
         meta: {
-          "revision": "Ember@2.0.2",
+          "topLevel": null,
+          "revision": "Ember@2.1.0",
           "loc": {
             "source": null,
             "start": {
@@ -2230,6 +2263,7 @@ define('elosh-client/templates/components/art-modal', ['exports'], function (exp
           },
           "moduleName": "elosh-client/templates/components/art-modal.hbs"
         },
+        isEmpty: false,
         arity: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -2257,7 +2291,8 @@ define('elosh-client/templates/components/art-modal', ['exports'], function (exp
     var child3 = (function() {
       return {
         meta: {
-          "revision": "Ember@2.0.2",
+          "topLevel": null,
+          "revision": "Ember@2.1.0",
           "loc": {
             "source": null,
             "start": {
@@ -2271,6 +2306,7 @@ define('elosh-client/templates/components/art-modal', ['exports'], function (exp
           },
           "moduleName": "elosh-client/templates/components/art-modal.hbs"
         },
+        isEmpty: false,
         arity: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -2298,7 +2334,8 @@ define('elosh-client/templates/components/art-modal', ['exports'], function (exp
     var child4 = (function() {
       return {
         meta: {
-          "revision": "Ember@2.0.2",
+          "topLevel": null,
+          "revision": "Ember@2.1.0",
           "loc": {
             "source": null,
             "start": {
@@ -2312,6 +2349,7 @@ define('elosh-client/templates/components/art-modal', ['exports'], function (exp
           },
           "moduleName": "elosh-client/templates/components/art-modal.hbs"
         },
+        isEmpty: false,
         arity: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -2338,7 +2376,8 @@ define('elosh-client/templates/components/art-modal', ['exports'], function (exp
     }());
     return {
       meta: {
-        "revision": "Ember@2.0.2",
+        "topLevel": false,
+        "revision": "Ember@2.1.0",
         "loc": {
           "source": null,
           "start": {
@@ -2352,6 +2391,7 @@ define('elosh-client/templates/components/art-modal', ['exports'], function (exp
         },
         "moduleName": "elosh-client/templates/components/art-modal.hbs"
       },
+      isEmpty: false,
       arity: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -2468,7 +2508,8 @@ define('elosh-client/templates/components/max-width', ['exports'], function (exp
   exports['default'] = Ember.HTMLBars.template((function() {
     return {
       meta: {
-        "revision": "Ember@2.0.2",
+        "topLevel": null,
+        "revision": "Ember@2.1.0",
         "loc": {
           "source": null,
           "start": {
@@ -2482,6 +2523,7 @@ define('elosh-client/templates/components/max-width', ['exports'], function (exp
         },
         "moduleName": "elosh-client/templates/components/max-width.hbs"
       },
+      isEmpty: false,
       arity: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -2515,7 +2557,8 @@ define('elosh-client/templates/components/nav-section', ['exports'], function (e
   exports['default'] = Ember.HTMLBars.template((function() {
     return {
       meta: {
-        "revision": "Ember@2.0.2",
+        "topLevel": null,
+        "revision": "Ember@2.1.0",
         "loc": {
           "source": null,
           "start": {
@@ -2529,6 +2572,7 @@ define('elosh-client/templates/components/nav-section', ['exports'], function (e
         },
         "moduleName": "elosh-client/templates/components/nav-section.hbs"
       },
+      isEmpty: false,
       arity: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -2562,7 +2606,8 @@ define('elosh-client/templates/loading', ['exports'], function (exports) {
   exports['default'] = Ember.HTMLBars.template((function() {
     return {
       meta: {
-        "revision": "Ember@2.0.2",
+        "topLevel": null,
+        "revision": "Ember@2.1.0",
         "loc": {
           "source": null,
           "start": {
@@ -2576,6 +2621,7 @@ define('elosh-client/templates/loading', ['exports'], function (exports) {
         },
         "moduleName": "elosh-client/templates/loading.hbs"
       },
+      isEmpty: false,
       arity: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -2636,7 +2682,8 @@ define('elosh-client/templates/partials/-artwork-thumbnails', ['exports'], funct
     var child0 = (function() {
       return {
         meta: {
-          "revision": "Ember@2.0.2",
+          "topLevel": null,
+          "revision": "Ember@2.1.0",
           "loc": {
             "source": null,
             "start": {
@@ -2650,6 +2697,7 @@ define('elosh-client/templates/partials/-artwork-thumbnails', ['exports'], funct
           },
           "moduleName": "elosh-client/templates/partials/-artwork-thumbnails.hbs"
         },
+        isEmpty: false,
         arity: 1,
         cachedFragment: null,
         hasRendered: false,
@@ -2705,7 +2753,8 @@ define('elosh-client/templates/partials/-artwork-thumbnails', ['exports'], funct
     }());
     return {
       meta: {
-        "revision": "Ember@2.0.2",
+        "topLevel": null,
+        "revision": "Ember@2.1.0",
         "loc": {
           "source": null,
           "start": {
@@ -2719,6 +2768,7 @@ define('elosh-client/templates/partials/-artwork-thumbnails', ['exports'], funct
         },
         "moduleName": "elosh-client/templates/partials/-artwork-thumbnails.hbs"
       },
+      isEmpty: false,
       arity: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -2757,7 +2807,8 @@ define('elosh-client/templates/partials/-book-thumbnails', ['exports'], function
     var child0 = (function() {
       return {
         meta: {
-          "revision": "Ember@2.0.2",
+          "topLevel": null,
+          "revision": "Ember@2.1.0",
           "loc": {
             "source": null,
             "start": {
@@ -2771,6 +2822,7 @@ define('elosh-client/templates/partials/-book-thumbnails', ['exports'], function
           },
           "moduleName": "elosh-client/templates/partials/-book-thumbnails.hbs"
         },
+        isEmpty: false,
         arity: 1,
         cachedFragment: null,
         hasRendered: false,
@@ -2817,7 +2869,8 @@ define('elosh-client/templates/partials/-book-thumbnails', ['exports'], function
     }());
     return {
       meta: {
-        "revision": "Ember@2.0.2",
+        "topLevel": null,
+        "revision": "Ember@2.1.0",
         "loc": {
           "source": null,
           "start": {
@@ -2831,6 +2884,7 @@ define('elosh-client/templates/partials/-book-thumbnails', ['exports'], function
         },
         "moduleName": "elosh-client/templates/partials/-book-thumbnails.hbs"
       },
+      isEmpty: false,
       arity: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -2870,7 +2924,8 @@ define('elosh-client/templates/partials/-main-navigation', ['exports'], function
       var child0 = (function() {
         return {
           meta: {
-            "revision": "Ember@2.0.2",
+            "topLevel": null,
+            "revision": "Ember@2.1.0",
             "loc": {
               "source": null,
               "start": {
@@ -2884,6 +2939,7 @@ define('elosh-client/templates/partials/-main-navigation', ['exports'], function
             },
             "moduleName": "elosh-client/templates/partials/-main-navigation.hbs"
           },
+          isEmpty: false,
           arity: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -2905,7 +2961,8 @@ define('elosh-client/templates/partials/-main-navigation', ['exports'], function
         var child0 = (function() {
           return {
             meta: {
-              "revision": "Ember@2.0.2",
+              "topLevel": null,
+              "revision": "Ember@2.1.0",
               "loc": {
                 "source": null,
                 "start": {
@@ -2919,6 +2976,7 @@ define('elosh-client/templates/partials/-main-navigation', ['exports'], function
               },
               "moduleName": "elosh-client/templates/partials/-main-navigation.hbs"
             },
+            isEmpty: false,
             arity: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -2944,7 +3002,8 @@ define('elosh-client/templates/partials/-main-navigation', ['exports'], function
         }());
         return {
           meta: {
-            "revision": "Ember@2.0.2",
+            "topLevel": null,
+            "revision": "Ember@2.1.0",
             "loc": {
               "source": null,
               "start": {
@@ -2958,6 +3017,7 @@ define('elosh-client/templates/partials/-main-navigation', ['exports'], function
             },
             "moduleName": "elosh-client/templates/partials/-main-navigation.hbs"
           },
+          isEmpty: false,
           arity: 1,
           cachedFragment: null,
           hasRendered: false,
@@ -2985,7 +3045,8 @@ define('elosh-client/templates/partials/-main-navigation', ['exports'], function
       }());
       return {
         meta: {
-          "revision": "Ember@2.0.2",
+          "topLevel": null,
+          "revision": "Ember@2.1.0",
           "loc": {
             "source": null,
             "start": {
@@ -2999,6 +3060,7 @@ define('elosh-client/templates/partials/-main-navigation', ['exports'], function
           },
           "moduleName": "elosh-client/templates/partials/-main-navigation.hbs"
         },
+        isEmpty: false,
         arity: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -3041,7 +3103,8 @@ define('elosh-client/templates/partials/-main-navigation', ['exports'], function
       var child0 = (function() {
         return {
           meta: {
-            "revision": "Ember@2.0.2",
+            "topLevel": null,
+            "revision": "Ember@2.1.0",
             "loc": {
               "source": null,
               "start": {
@@ -3055,6 +3118,7 @@ define('elosh-client/templates/partials/-main-navigation', ['exports'], function
             },
             "moduleName": "elosh-client/templates/partials/-main-navigation.hbs"
           },
+          isEmpty: false,
           arity: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -3076,7 +3140,8 @@ define('elosh-client/templates/partials/-main-navigation', ['exports'], function
         var child0 = (function() {
           return {
             meta: {
-              "revision": "Ember@2.0.2",
+              "topLevel": null,
+              "revision": "Ember@2.1.0",
               "loc": {
                 "source": null,
                 "start": {
@@ -3090,6 +3155,7 @@ define('elosh-client/templates/partials/-main-navigation', ['exports'], function
               },
               "moduleName": "elosh-client/templates/partials/-main-navigation.hbs"
             },
+            isEmpty: false,
             arity: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -3115,7 +3181,8 @@ define('elosh-client/templates/partials/-main-navigation', ['exports'], function
         }());
         return {
           meta: {
-            "revision": "Ember@2.0.2",
+            "topLevel": null,
+            "revision": "Ember@2.1.0",
             "loc": {
               "source": null,
               "start": {
@@ -3129,6 +3196,7 @@ define('elosh-client/templates/partials/-main-navigation', ['exports'], function
             },
             "moduleName": "elosh-client/templates/partials/-main-navigation.hbs"
           },
+          isEmpty: false,
           arity: 1,
           cachedFragment: null,
           hasRendered: false,
@@ -3156,7 +3224,8 @@ define('elosh-client/templates/partials/-main-navigation', ['exports'], function
       }());
       return {
         meta: {
-          "revision": "Ember@2.0.2",
+          "topLevel": null,
+          "revision": "Ember@2.1.0",
           "loc": {
             "source": null,
             "start": {
@@ -3170,6 +3239,7 @@ define('elosh-client/templates/partials/-main-navigation', ['exports'], function
           },
           "moduleName": "elosh-client/templates/partials/-main-navigation.hbs"
         },
+        isEmpty: false,
         arity: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -3212,7 +3282,8 @@ define('elosh-client/templates/partials/-main-navigation', ['exports'], function
       var child0 = (function() {
         return {
           meta: {
-            "revision": "Ember@2.0.2",
+            "topLevel": null,
+            "revision": "Ember@2.1.0",
             "loc": {
               "source": null,
               "start": {
@@ -3226,6 +3297,7 @@ define('elosh-client/templates/partials/-main-navigation', ['exports'], function
             },
             "moduleName": "elosh-client/templates/partials/-main-navigation.hbs"
           },
+          isEmpty: false,
           arity: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -3262,7 +3334,8 @@ define('elosh-client/templates/partials/-main-navigation', ['exports'], function
       }());
       return {
         meta: {
-          "revision": "Ember@2.0.2",
+          "topLevel": null,
+          "revision": "Ember@2.1.0",
           "loc": {
             "source": null,
             "start": {
@@ -3276,6 +3349,7 @@ define('elosh-client/templates/partials/-main-navigation', ['exports'], function
           },
           "moduleName": "elosh-client/templates/partials/-main-navigation.hbs"
         },
+        isEmpty: false,
         arity: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -3323,7 +3397,8 @@ define('elosh-client/templates/partials/-main-navigation', ['exports'], function
     }());
     return {
       meta: {
-        "revision": "Ember@2.0.2",
+        "topLevel": null,
+        "revision": "Ember@2.1.0",
         "loc": {
           "source": null,
           "start": {
@@ -3337,6 +3412,7 @@ define('elosh-client/templates/partials/-main-navigation', ['exports'], function
         },
         "moduleName": "elosh-client/templates/partials/-main-navigation.hbs"
       },
+      isEmpty: false,
       arity: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -3889,7 +3965,7 @@ catch(err) {
 if (runningTests) {
   require("elosh-client/tests/test-helper");
 } else {
-  require("elosh-client/app")["default"].create({"name":"elosh-client","version":"0.0.0+d7b260b3"});
+  require("elosh-client/app")["default"].create({"name":"elosh-client","version":"0.0.0+0658e50b"});
 }
 
 /* jshint ignore:end */
