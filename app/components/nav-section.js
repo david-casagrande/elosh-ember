@@ -10,10 +10,13 @@ export default Ember.Component.extend({
 
   attributeBindings: ['style'],
 
-  style: function() {
-    var sectionHeight = this.get('open') ? this.get('openHeight') : this.get('closedHeight');
-    return 'height: ' + sectionHeight + 'px;';
-  }.property('open', 'openHeight'),
+  style: Ember.computed('open', 'openHeight', {
+    get() {
+      var sectionHeight = this.get('open') ? this.get('openHeight') : this.get('closedHeight');
+      return new Ember.Handlebars.SafeString('height: ' + sectionHeight + 'px;');
+      // return 'height: ' + sectionHeight + 'px;';
+    }
+  }),
 
   _setOpenHeight: function() {
     var height = this.$().find('.links').outerHeight();

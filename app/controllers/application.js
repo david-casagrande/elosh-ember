@@ -1,19 +1,23 @@
 import Ember from 'ember';
 
 export default Ember.Controller.extend({
-
   modalOpen: false,
 
-  themeDirectory: function() {
-    return window.ELOSH_THEME_DIRECTORY;
-  }.property(),
+  themeDirectory: Ember.computed({
+    get() {
+      return window.ELOSH_THEME_DIRECTORY;
+    }
+  }),
 
-  logoURL: function() {
-    return this.get('themeDirectory') + '/assets/dist/images/elosh-logo.jpg';
-  }.property('themeDirectory'),
+  logoURL: Ember.computed('themeDirectory', {
+    get() {
+      return this.get('themeDirectory') + '/assets/dist/images/elosh-logo.jpg';
+    }
+  }),
 
-  footerLogoURL: function() {
-    return this.get('themeDirectory') + '/assets/dist/images/elosh-footer.jpg';
-  }.property('themeDirectory')
-
+  footerLogoURL: Ember.computed('themeDirectory', {
+    get() {
+      return this.get('themeDirectory') + '/assets/dist/images/elosh-footer.jpg';
+    }
+  })
 });
