@@ -623,8 +623,8 @@ define('elosh-client/models/artwork', ['exports', 'ember-data'], function (expor
     slug: a('string'),
     title: a('string'),
 
-    image: b('imageObject', { async: true }),
-    thumbnail: b('imageObject', { async: true })
+    image: b('imageObject'),
+    thumbnail: b('imageObject')
   });
 
 });
@@ -3965,7 +3965,7 @@ catch(err) {
 if (runningTests) {
   require("elosh-client/tests/test-helper");
 } else {
-  require("elosh-client/app")["default"].create({"name":"elosh-client","version":"0.0.0+0658e50b"});
+  require("elosh-client/app")["default"].create({"name":"elosh-client","version":"0.0.0+badf82c6"});
 }
 
 /* jshint ignore:end */
