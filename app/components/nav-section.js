@@ -1,7 +1,6 @@
 import Ember from 'ember';
 
 export default Ember.Component.extend({
-
   classNames: ['section'],
   open: false,
 
@@ -17,20 +16,15 @@ export default Ember.Component.extend({
     }
   }),
 
-  _setOpenHeight: function() {
+  _setOpenHeight: Ember.on('didInsertElement', function() {
     var height = this.$().find('.links').outerHeight();
     this.set('openHeight', height + this.get('closedHeight'));
-  }.on('didInsertElement'),
+  }),
 
-  // _currentPathChange: Ember.observer(function() {
-  //
-  // }
-
-  _currentPathChange: function() {
+  _currentPathChange: Ember.observer('currentPath', function() {
     var parentRoute = this.get('currentPath').split('.').objectAt(0),
         open = parentRoute === this.get('path');
 
     this.set('open', open);
-  }.observes('currentPath').on('init')
-
+  })
 });

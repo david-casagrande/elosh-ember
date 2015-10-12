@@ -12,14 +12,14 @@ export default Ember.Mixin.create({
 
   progressLoaderDuration: 400,
 
-  _setup: function() {
+  _setup: Ember.on('didInsertElement', function() {
     this.set('progress', this._createProgressBar());
     this._loadImage();
-  }.on('didInsertElement'),
+  }),
 
-  _teardown: function() {
+  _teardown: Ember.on('willDestroyElement', function() {
     this.get('progress').destroy();
-  }.on('willDestroyElement'),
+  }),
 
   _createProgressBar: function() {
     return new ProgressBar.Circle('#progress-circle', {

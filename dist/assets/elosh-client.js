@@ -112,7 +112,6 @@ define('elosh-client/components/nav-section', ['exports', 'ember'], function (ex
   'use strict';
 
   exports['default'] = Ember['default'].Component.extend({
-
     classNames: ['section'],
     open: false,
 
@@ -128,22 +127,17 @@ define('elosh-client/components/nav-section', ['exports', 'ember'], function (ex
       }
     }),
 
-    _setOpenHeight: (function () {
+    _setOpenHeight: Ember['default'].on('didInsertElement', function () {
       var height = this.$().find('.links').outerHeight();
       this.set('openHeight', height + this.get('closedHeight'));
-    }).on('didInsertElement'),
+    }),
 
-    // _currentPathChange: Ember.observer(function() {
-    //
-    // }
-
-    _currentPathChange: (function () {
+    _currentPathChange: Ember['default'].observer('currentPath', function () {
       var parentRoute = this.get('currentPath').split('.').objectAt(0),
           open = parentRoute === this.get('path');
 
       this.set('open', open);
-    }).observes('currentPath').on('init')
-
+    })
   });
 
 });
@@ -283,13 +277,12 @@ define('elosh-client/mixins/components/art-modal-close-intent', ['exports', 'emb
   'use strict';
 
   exports['default'] = Ember['default'].Mixin.create({
-
     closeIntentBindingId: null,
 
-    _setupCloseIntent: (function () {
+    _setupCloseIntent: Ember['default'].on('didInsertElement', function () {
       this._setCloseIntentBindingId();
       this._setCloseIntent();
-    }).on('didInsertElement'),
+    }),
 
     _setCloseIntentBindingId: function _setCloseIntentBindingId() {
       var id = ['click', 'artModalComponent', this.get('elementId')];
@@ -314,10 +307,9 @@ define('elosh-client/mixins/components/art-modal-close-intent', ['exports', 'emb
       }
     },
 
-    _teardownCloseIntent: (function () {
+    _teardownCloseIntent: Ember['default'].on('willDestroyElement', function () {
       Ember['default'].$(window).off(this.get('closeIntentBindingId'));
-    }).on('willDestroyElement')
-
+    })
   });
 
 });
@@ -326,13 +318,12 @@ define('elosh-client/mixins/components/art-modal-height-management', ['exports',
   'use strict';
 
   exports['default'] = Ember['default'].Mixin.create({
-
     artModalBindingId: null,
 
-    setupHeightManagement: (function () {
+    setupHeightManagement: Ember['default'].on('didInsertElement', function () {
       this._setArtModalBindingId();
       this._setArtModalManagement();
-    }).on('didInsertElement'),
+    }),
 
     _setArtModalBindingId: function _setArtModalBindingId() {
       var id = ['resize', 'artModalComponent', this.get('elementId')];
@@ -365,10 +356,9 @@ define('elosh-client/mixins/components/art-modal-height-management', ['exports',
       });
     },
 
-    teardownHeightManagement: (function () {
+    teardownHeightManagement: Ember['default'].on('willDestroyElement', function () {
       Ember['default'].$(window).off(this.get('artModalBindingId'));
-    }).on('willDestroyElement')
-
+    })
   });
 
 });
@@ -377,13 +367,12 @@ define('elosh-client/mixins/components/art-modal-keyboard-navigation', ['exports
   'use strict';
 
   exports['default'] = Ember['default'].Mixin.create({
-
     keyboardNavigationBindingId: null,
 
-    _setupKeyboardNavigation: (function () {
+    _setupKeyboardNavigation: Ember['default'].on('didInsertElement', function () {
       this._setKeyboardNavigationBindingId();
       this._setKeyboardNavigationManagement();
-    }).on('didInsertElement'),
+    }),
 
     _setKeyboardNavigationBindingId: function _setKeyboardNavigationBindingId() {
       var id = ['keyup', 'artModalComponent', this.get('elementId')];
@@ -408,10 +397,9 @@ define('elosh-client/mixins/components/art-modal-keyboard-navigation', ['exports
       this.send(action);
     },
 
-    _teardownKeyboardNavigationManagement: (function () {
+    _teardownKeyboardNavigationManagement: Ember['default'].on('willDestroyElement', function () {
       Ember['default'].$(window).off(this.get('keyboardNavigationBindingId'));
-    }).on('willDestroyElement')
-
+    })
   });
 
 });
@@ -431,14 +419,14 @@ define('elosh-client/mixins/components/art-modal-loading-management', ['exports'
 
     progressLoaderDuration: 400,
 
-    _setup: (function () {
+    _setup: Ember['default'].on('didInsertElement', function () {
       this.set('progress', this._createProgressBar());
       this._loadImage();
-    }).on('didInsertElement'),
+    }),
 
-    _teardown: (function () {
+    _teardown: Ember['default'].on('willDestroyElement', function () {
       this.get('progress').destroy();
-    }).on('willDestroyElement'),
+    }),
 
     _createProgressBar: function _createProgressBar() {
       return new ProgressBar.Circle('#progress-circle', {

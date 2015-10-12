@@ -1,13 +1,12 @@
 import Ember from 'ember';
 
 export default Ember.Mixin.create({
-
   artModalBindingId: null,
 
-  setupHeightManagement: function() {
+  setupHeightManagement: Ember.on('didInsertElement', function() {
     this._setArtModalBindingId();
     this._setArtModalManagement();
-  }.on('didInsertElement'),
+  }),
 
   _setArtModalBindingId: function() {
     var id = ['resize', 'artModalComponent', this.get('elementId')];
@@ -37,8 +36,7 @@ export default Ember.Mixin.create({
     });
   },
 
-  teardownHeightManagement: function() {
+  teardownHeightManagement: Ember.on('willDestroyElement', function() {
     Ember.$(window).off(this.get('artModalBindingId'));
-  }.on('willDestroyElement')
-
+  })
 });

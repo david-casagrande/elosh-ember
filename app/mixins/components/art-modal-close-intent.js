@@ -1,13 +1,12 @@
 import Ember from 'ember';
 
 export default Ember.Mixin.create({
-
   closeIntentBindingId: null,
 
-  _setupCloseIntent: function() {
+  _setupCloseIntent: Ember.on('didInsertElement', function() {
     this._setCloseIntentBindingId();
     this._setCloseIntent();
-  }.on('didInsertElement'),
+  }),
 
   _setCloseIntentBindingId: function() {
     var id = ['click', 'artModalComponent', this.get('elementId')];
@@ -30,8 +29,7 @@ export default Ember.Mixin.create({
     }
   },
 
-  _teardownCloseIntent: function() {
+  _teardownCloseIntent: Ember.on('willDestroyElement', function() {
     Ember.$(window).off(this.get('closeIntentBindingId'));
-  }.on('willDestroyElement')
-
+  })
 });
