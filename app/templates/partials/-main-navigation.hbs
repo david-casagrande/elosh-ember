@@ -24,16 +24,16 @@
     {{#nav-section currentPath=currentPath path='about'}}
       {{link-to 'About' 'about' classNames='parent-link about'}}
       <div class="links about">
-        {{{contact.contactNarrative}}}
-        {{#if contact.email}}
-          <p><a {{bind-attr href='contact.mailTo'}} title="Email Eric Losh" target="_blank">{{contact.email}}</a></p>
+        {{{model.contact.contactNarrative}}}
+        {{#if model.contact.email}}
+          <p><a {{bind-attr href='model.contact.mailTo'}} title="Email Eric Losh" target="_blank">{{model.contact.email}}</a></p>
         {{/if}}
       </div>
     {{/nav-section}}
     <div class="border about"></div>
 
     <div class="section">
-      <a {{bind-attr href='contact.storeLink'}} class="parent-link shop" target="_blank">Shop</a>
+      <a {{bind-attr href='model.contact.storeLink'}} class="parent-link shop" target="_blank">Shop</a>
     </div>
     <div class="border shop"></div>
 

@@ -8,7 +8,6 @@ export default Ember.Component.extend({
     get() {
       var width = this.get('width') ? this.get('width') : 0;
       return new Ember.Handlebars.SafeString('max-width: ' + width + 'px;');
-      // return 'max-width: ' + width + 'px;';
     }
   })
 });
