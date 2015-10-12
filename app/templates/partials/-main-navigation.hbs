@@ -4,7 +4,7 @@
     {{#nav-section currentPath=currentPath path='artwork'}}
       {{#link-to 'artwork' classNames="parent-link artwork"}}Artwork{{/link-to}}
       <div class="links">
-        {{#each artworkCategory in model.artworkCategories}}
+        {{#each model.artworkCategories as |artworkCategory|}}
           {{#link-to 'artwork.category' artworkCategory.slug}}{{artworkCategory.name}}{{/link-to}}
         {{/each}}
       </div>
@@ -14,7 +14,7 @@
     {{#nav-section currentPath=currentPath path='books'}}
       {{#link-to 'books' classNames="parent-link books"}}Books{{/link-to}}
       <div class="links">
-        {{#each book in books}}
+        {{#each model.books as |book|}}
           {{#link-to 'books.show' book.slug}}{{book.title}}{{/link-to}}
         {{/each}}
       </div>

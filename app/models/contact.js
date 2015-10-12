@@ -9,9 +9,13 @@ export default DS.Model.extend({
   twitter:          a('string'),
   storeLink:        a('string'),
 
-  mailTo: function(){
+  mailTo: Ember.computed('email', function() {
     return this.get('email') ? 'mailto:'+this.get('email') : null;
-  }.property('email'),
+  }),
+
+  // mailTo: function(){
+  //   return this.get('email') ? 'mailto:'+this.get('email') : null;
+  // }.property('email'),
 
   twitterLink: function(){
     return this.get('twitter') ? 'https://twitter.com/'+this.get('twitter') : null;
