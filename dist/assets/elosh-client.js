@@ -86,7 +86,6 @@ define('elosh-client/components/art-modal', ['exports', 'ember', 'elosh-client/m
       }
       this._super(e);
     }
-
   });
 
 });
@@ -430,12 +429,31 @@ define('elosh-client/mixins/components/art-modal-loading-management', ['exports'
     imageLoaded: false,
     imageDataUrl: null,
     hideOverlay: false,
+    timers: [],
 
     progressLoaderDuration: 400,
 
-    _setup: Ember['default'].on('didInsertElement', function () {
-      this.set('progress', this._createProgressBar());
-      this._loadImage();
+    _setup: Ember['default'].on('didReceiveAttrs', function () {
+      var _this = this;
+
+      this.get('timers').forEach(function (timer) {
+        return Ember['default'].run.cancel(timer);
+      });
+
+      this.setProperties({
+        imageLoaded: false,
+        imageDataUrl: null,
+        hideOverlay: false,
+        timers: []
+      });
+
+      Ember['default'].run.schedule('afterRender', function () {
+        if (_this.get('progress')) {
+          _this.get('progress').destroy();
+        }
+        _this.set('progress', _this._createProgressBar());
+        _this._loadImage();
+      });
     }),
 
     _teardown: Ember['default'].on('willDestroyElement', function () {
@@ -463,8 +481,8 @@ define('elosh-client/mixins/components/art-modal-loading-management', ['exports'
           self._readFile(this.response);
         };
         oReq.onprogress = function (e) {
-          var p = parseFloat(e.loaded / e.total).toFixed(2),
-              progress = self.get('progress');
+          var p = parseFloat(e.loaded / e.total).toFixed(2);
+          var progress = self.get('progress');
 
           progress.stop();
           progress.animate(p);
@@ -499,19 +517,23 @@ define('elosh-client/mixins/components/art-modal-loading-management', ['exports'
     },
 
     _setImageLoaded: function _setImageLoaded() {
-      Ember['default'].run.later(this, function () {
+      var timer = Ember['default'].run.later(this, function () {
         this.set('imageLoaded', true);
         this._hideLoadingOverlay();
       }, this.get('progressLoaderDuration'));
+
+      this.get('timers').addObject(timer);
     },
 
     _hideLoadingOverlay: function _hideLoadingOverlay() {
-      Ember['default'].run.later(this, function () {
+      var timer = Ember['default'].run.later(this, function () {
         if (this.get('isDestroyed') || this.get('isDestroying')) {
           return;
         }
         this.set('hideOverlay', true);
       }, 2000); // 2s via .loaded class fades out overlay time
+
+      this.get('timers').addObject(timer);
     }
   });
 
@@ -2127,10 +2149,10 @@ define('elosh-client/templates/components/art-modal', ['exports'], function (exp
           return el0;
         },
         buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-          var element1 = dom.childAt(fragment, [1]);
+          var element0 = dom.childAt(fragment, [1]);
           var morphs = new Array(2);
-          morphs[0] = dom.createAttrMorph(element1, 'src');
-          morphs[1] = dom.createAttrMorph(element1, 'alt');
+          morphs[0] = dom.createAttrMorph(element0, 'src');
+          morphs[1] = dom.createAttrMorph(element0, 'alt');
           return morphs;
         },
         statements: [
@@ -2305,54 +2327,6 @@ define('elosh-client/templates/components/art-modal', ['exports'], function (exp
         templates: []
       };
     }());
-    var child5 = (function() {
-      return {
-        meta: {
-          "revision": "Ember@1.13.3",
-          "loc": {
-            "source": null,
-            "start": {
-              "line": 12,
-              "column": 0
-            },
-            "end": {
-              "line": 16,
-              "column": 0
-            }
-          },
-          "moduleName": "elosh-client/templates/components/art-modal.hbs"
-        },
-        arity: 0,
-        cachedFragment: null,
-        hasRendered: false,
-        buildFragment: function buildFragment(dom) {
-          var el0 = dom.createDocumentFragment();
-          var el1 = dom.createElement("div");
-          var el2 = dom.createTextNode("\n  ");
-          dom.appendChild(el1, el2);
-          var el2 = dom.createElement("div");
-          dom.setAttribute(el2,"id","progress-circle");
-          dom.appendChild(el1, el2);
-          var el2 = dom.createTextNode("\n");
-          dom.appendChild(el1, el2);
-          dom.appendChild(el0, el1);
-          var el1 = dom.createTextNode("\n");
-          dom.appendChild(el0, el1);
-          return el0;
-        },
-        buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-          var element0 = dom.childAt(fragment, [0]);
-          var morphs = new Array(1);
-          morphs[0] = dom.createAttrMorph(element0, 'class');
-          return morphs;
-        },
-        statements: [
-          ["attribute","class",["concat",["loading-overlay ",["subexpr","if",[["get","imageLoaded",["loc",[null,[13,33],[13,44]]]],"loaded"],[],["loc",[null,[13,28],[13,55]]]]]]]
-        ],
-        locals: [],
-        templates: []
-      };
-    }());
     return {
       meta: {
         "revision": "Ember@1.13.3",
@@ -2363,7 +2337,7 @@ define('elosh-client/templates/components/art-modal', ['exports'], function (exp
             "column": 0
           },
           "end": {
-            "line": 20,
+            "line": 18,
             "column": 0
           }
         },
@@ -2406,7 +2380,16 @@ define('elosh-client/templates/components/art-modal', ['exports'], function (exp
         dom.appendChild(el0, el1);
         var el1 = dom.createTextNode("\n");
         dom.appendChild(el0, el1);
-        var el1 = dom.createComment("");
+        var el1 = dom.createElement("div");
+        var el2 = dom.createTextNode("\n  ");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createElement("div");
+        dom.setAttribute(el2,"id","progress-circle");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createTextNode("\n");
+        dom.appendChild(el1, el2);
+        dom.appendChild(el0, el1);
+        var el1 = dom.createTextNode("\n");
         dom.appendChild(el0, el1);
         var el1 = dom.createElement("a");
         dom.setAttribute(el1,"href","#");
@@ -2435,17 +2418,18 @@ define('elosh-client/templates/components/art-modal', ['exports'], function (exp
         return el0;
       },
       buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-        var element2 = dom.childAt(fragment, [2]);
-        var element3 = dom.childAt(fragment, [5]);
-        var element4 = dom.childAt(fragment, [7]);
-        var element5 = dom.childAt(fragment, [9]);
+        var element1 = dom.childAt(fragment, [2]);
+        var element2 = dom.childAt(fragment, [4]);
+        var element3 = dom.childAt(fragment, [6]);
+        var element4 = dom.childAt(fragment, [8]);
+        var element5 = dom.childAt(fragment, [10]);
         var morphs = new Array(9);
         morphs[0] = dom.createMorphAt(dom.childAt(fragment, [0]),1,1);
-        morphs[1] = dom.createMorphAt(element2,1,1);
-        morphs[2] = dom.createMorphAt(element2,3,3);
-        morphs[3] = dom.createMorphAt(element2,5,5);
-        morphs[4] = dom.createMorphAt(element2,7,7);
-        morphs[5] = dom.createMorphAt(fragment,4,4,contextualElement);
+        morphs[1] = dom.createMorphAt(element1,1,1);
+        morphs[2] = dom.createMorphAt(element1,3,3);
+        morphs[3] = dom.createMorphAt(element1,5,5);
+        morphs[4] = dom.createMorphAt(element1,7,7);
+        morphs[5] = dom.createAttrMorph(element2, 'class');
         morphs[6] = dom.createElementMorph(element3);
         morphs[7] = dom.createElementMorph(element4);
         morphs[8] = dom.createElementMorph(element5);
@@ -2457,13 +2441,13 @@ define('elosh-client/templates/components/art-modal', ['exports'], function (exp
         ["block","if",[["get","art.bookTitle",["loc",[null,[8,8],[8,21]]]]],[],2,null,["loc",[null,[8,2],[8,73]]]],
         ["block","if",[["get","art.medium",["loc",[null,[9,8],[9,18]]]]],[],3,null,["loc",[null,[9,2],[9,67]]]],
         ["block","if",[["get","art.description",["loc",[null,[10,8],[10,23]]]]],[],4,null,["loc",[null,[10,2],[10,88]]]],
-        ["block","unless",[["get","hideOverlay",["loc",[null,[12,10],[12,21]]]]],[],5,null,["loc",[null,[12,0],[16,11]]]],
-        ["element","action",["previousItem"],[],["loc",[null,[17,46],[17,71]]]],
-        ["element","action",["nextItem"],[],["loc",[null,[18,42],[18,63]]]],
-        ["element","action",["closeModal"],[],["loc",[null,[19,43],[19,66]]]]
+        ["attribute","class",["concat",["loading-overlay ",["subexpr","if",[["get","imageLoaded",["loc",[null,[12,33],[12,44]]]],"loaded"],[],["loc",[null,[12,28],[12,55]]]]," ",["subexpr","if",[["get","hideOverlay",["loc",[null,[12,61],[12,72]]]],"hide"],[],["loc",[null,[12,56],[12,81]]]]]]],
+        ["element","action",["previousItem"],[],["loc",[null,[15,46],[15,71]]]],
+        ["element","action",["nextItem"],[],["loc",[null,[16,42],[16,63]]]],
+        ["element","action",["closeModal"],[],["loc",[null,[17,43],[17,66]]]]
       ],
       locals: [],
-      templates: [child0, child1, child2, child3, child4, child5]
+      templates: [child0, child1, child2, child3, child4]
     };
   }()));
 
@@ -3931,7 +3915,7 @@ catch(err) {
 if (runningTests) {
   require("elosh-client/tests/test-helper");
 } else {
-  require("elosh-client/app")["default"].create({"name":"elosh-client","version":"0.0.0+e01efbe5"});
+  require("elosh-client/app")["default"].create({"name":"elosh-client","version":"0.0.0+c4e8eff7"});
 }
 
 /* jshint ignore:end */

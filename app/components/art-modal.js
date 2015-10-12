@@ -27,6 +27,5 @@ export default Ember.Component.extend(
   _parseKeyPress: function(e) {
     if(!this.get('imageLoaded')) { return; }
     this._super(e);
-  },
-
+  }
 });
