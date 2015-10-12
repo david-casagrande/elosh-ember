@@ -2,7 +2,7 @@
   <div class="brand clear-fix">
     {{#link-to 'index'}}<img src="{{logoURL}}" alt="Eric Losh" />{{/link-to}}
   </div>
-  {{!partial 'partials/main-navigation'}}
+  {{partial 'partials/main-navigation'}}
   <div class="footer clear-fix">
     <img src="{{footerLogoURL}}" />
     <p>Web by <a href="https://github.com/david-casagrande" target="_blank" title="David Casagrande">David Casagrande</a></p>
@@ -12,12 +12,12 @@
 <div id="app-window">
   <div class="margin">
     <div class="page clear-fix">
-      {{!outlet}}
+      {{outlet}}
     </div>
   </div>
 </div>
 
-<div id="modal" class="{{if modalOpen 'show'}}"}}>
+<div id="modal" class="{{if modalOpen 'show'}}">
   <div class="margin">
     {{outlet 'modal'}}
   </div>

@@ -16,16 +16,14 @@ define('elosh-client/adapters/about', ['exports', 'elosh-client/adapters/applica
   });
 
 });
-define('elosh-client/adapters/application', ['exports', 'ember-data'], function (exports, DS) {
+define('elosh-client/adapters/application', ['exports', 'active-model-adapter'], function (exports, ActiveModelAdapter) {
 
   'use strict';
 
-  exports['default'] = DS['default'].ActiveModelAdapter.extend({
-
+  exports['default'] = ActiveModelAdapter['default'].extend({
     buildURL: function buildURL() {
       return '/wp-admin/admin-ajax.php';
     }
-
   });
 
 });
@@ -43,7 +41,7 @@ define('elosh-client/adapters/contact', ['exports', 'elosh-client/adapters/appli
   });
 
 });
-define('elosh-client/app', ['exports', 'ember', 'ember/resolver', 'elosh-client/config/environment'], function (exports, Ember, Resolver, config) {
+define('elosh-client/app', ['exports', 'ember', 'ember/resolver', 'ember/load-initializers', 'elosh-client/config/environment'], function (exports, Ember, Resolver, loadInitializers, config) {
 
   'use strict';
 
@@ -53,8 +51,11 @@ define('elosh-client/app', ['exports', 'ember', 'ember/resolver', 'elosh-client/
 
   App = Ember['default'].Application.extend({
     modulePrefix: config['default'].modulePrefix,
+    podModulePrefix: config['default'].podModulePrefix,
     Resolver: Resolver['default']
   });
+
+  loadInitializers['default'](App, config['default'].modulePrefix);
 
   exports['default'] = App;
 
@@ -173,21 +174,15 @@ define('elosh-client/controllers/application', ['exports', 'ember'], function (e
   });
 
 });
-define('elosh-client/initializers/app-version', ['exports', 'elosh-client/config/environment', 'ember'], function (exports, config, Ember) {
+define('elosh-client/initializers/active-model-adapter', ['exports', 'active-model-adapter', 'active-model-adapter/active-model-serializer'], function (exports, ActiveModelAdapter, ActiveModelSerializer) {
 
   'use strict';
 
-  var classify = Ember['default'].String.classify;
-  var registered = false;
-
   exports['default'] = {
-    name: 'App Version',
-    initialize: function initialize(container, application) {
-      if (!registered) {
-        var appName = classify(application.toString());
-        Ember['default'].libraries.register(appName, config['default'].APP.version);
-        registered = true;
-      }
+    name: 'active-model-adapter',
+    initialize: function initialize(registry, application) {
+      registry.register('adapter:-active-model', ActiveModelAdapter['default']);
+      registry.register('serializer:-active-model', ActiveModelSerializer['default']);
     }
   };
 
@@ -227,6 +222,59 @@ define('elosh-client/initializers/export-application-global', ['exports', 'ember
     name: 'export-application-global',
 
     initialize: initialize
+  };
+
+});
+define('elosh-client/instance-initializers/active-model-adapter', ['exports', 'active-model-adapter', 'active-model-adapter/active-model-serializer'], function (exports, ActiveModelAdapter, ActiveModelSerializer) {
+
+  'use strict';
+
+  exports['default'] = {
+    name: 'active-model-adapter',
+    initialize: function initialize(applicationOrRegistry) {
+      var registry, container;
+      if (applicationOrRegistry.registry && applicationOrRegistry.container) {
+        // initializeStoreService was registered with an
+        // instanceInitializer. The first argument is the application
+        // instance.
+        registry = applicationOrRegistry.registry;
+        container = applicationOrRegistry.container;
+      } else {
+        // initializeStoreService was called by an initializer instead of
+        // an instanceInitializer. The first argument is a registy. This
+        // case allows ED to support Ember pre 1.12
+        registry = applicationOrRegistry;
+        if (registry.container) {
+          // Support Ember 1.10 - 1.11
+          container = registry.container();
+        } else {
+          // Support Ember 1.9
+          container = registry;
+        }
+      }
+
+      registry.register('adapter:-active-model', ActiveModelAdapter['default']);
+      registry.register('serializer:-active-model', ActiveModelSerializer['default']);
+    }
+  };
+
+});
+define('elosh-client/instance-initializers/app-version', ['exports', 'elosh-client/config/environment', 'ember'], function (exports, config, Ember) {
+
+  'use strict';
+
+  var classify = Ember['default'].String.classify;
+  var registered = false;
+
+  exports['default'] = {
+    name: 'App Version',
+    initialize: function initialize(application) {
+      if (!registered) {
+        var appName = classify(application.toString());
+        Ember['default'].libraries.register(appName, config['default'].APP.version);
+        registered = true;
+      }
+    }
   };
 
 });
@@ -675,11 +723,11 @@ define('elosh-client/routes/application', ['exports', 'ember'], function (export
     model: function model() {
       var store = this.get('store');
       return Ember['default'].RSVP.hash({
-        books: store.find('book', { 'action': 'get_books' }),
-        artworkCategories: store.find('artworkCategory', { 'action': 'get_artwork_categories' }),
+        books: store.query('book', { 'action': 'get_books' }),
+        artworkCategories: store.query('artworkCategory', { 'action': 'get_artwork_categories' }),
         contact: store.find('contact', 1),
         about: store.find('about', 1),
-        artwork: store.find('artwork', { 'action': 'get_artwork' })
+        artwork: store.query('artwork', { 'action': 'get_artwork' })
       });
     },
 
@@ -772,7 +820,7 @@ define('elosh-client/routes/artwork/category', ['exports', 'ember', 'elosh-clien
 
     model: function model(params) {
       var artwork = this.modelFor('artwork'),
-          artworkCategories = this.store.all('artworkCategory'),
+          artworkCategories = this.store.peekAll('artworkCategory'),
           category = artworkCategories.findBy('slug', params.category_slug);
 
       artwork = artwork.filter(function (artwork) {
@@ -817,7 +865,7 @@ define('elosh-client/routes/artwork/category/show', ['exports', 'ember'], functi
   exports['default'] = Ember['default'].Route.extend({
 
     model: function model(params) {
-      var artwork = this.store.all('artwork'),
+      var artwork = this.store.peekAll('artwork'),
           art = artwork.findBy('slug', params.artwork_slug);
 
       return art ? art : {};
@@ -878,7 +926,7 @@ define('elosh-client/routes/books/show', ['exports', 'ember', 'elosh-client/mixi
     },
 
     model: function model(params) {
-      var books = this.store.all('book'),
+      var books = this.store.peekAll('book'),
           book = books.findBy('slug', params.book_slug);
 
       return book ? book : {};
@@ -918,7 +966,7 @@ define('elosh-client/routes/books/show/book-page', ['exports', 'ember'], functio
   exports['default'] = Ember['default'].Route.extend({
 
     model: function model(params) {
-      var artwork = this.store.all('artwork'),
+      var artwork = this.store.peekAll('artwork'),
           art = artwork.findBy('slug', params.book_page);
 
       return art ? art : {};
@@ -957,11 +1005,13 @@ define('elosh-client/serializers/about', ['exports', 'elosh-client/serializers/a
   });
 
 });
-define('elosh-client/serializers/application', ['exports', 'ember-data'], function (exports, DS) {
+define('elosh-client/serializers/application', ['exports', 'active-model-adapter'], function (exports, active_model_adapter) {
 
-	'use strict';
+  'use strict';
 
-	exports['default'] = DS['default'].ActiveModelSerializer;
+  exports['default'] = active_model_adapter.ActiveModelSerializer.extend({
+    isNewSerializerAPI: true
+  });
 
 });
 define('elosh-client/serializers/artwork-category', ['exports', 'elosh-client/serializers/application'], function (exports, ApplicationSerializer) {
@@ -969,14 +1019,12 @@ define('elosh-client/serializers/artwork-category', ['exports', 'elosh-client/se
   'use strict';
 
   exports['default'] = ApplicationSerializer['default'].extend({
-
-    normalizePayload: function normalizePayload(payload) {
+    normalizeResponse: function normalizeResponse(store, primaryModelClass, payload, id, requestType) {
       payload.artwork_categories.forEach(function (category) {
         category.id = category.term_id;
       });
-      return payload;
+      return this._super(store, primaryModelClass, payload, id, requestType);
     }
-
   });
 
 });
@@ -1017,12 +1065,25 @@ define('elosh-client/templates/about', ['exports'], function (exports) {
     var child0 = (function() {
       var child0 = (function() {
         return {
-          isHTMLBars: true,
-          revision: "Ember@1.12.0",
-          blockParams: 0,
+          meta: {
+            "revision": "Ember@1.13.3",
+            "loc": {
+              "source": null,
+              "start": {
+                "line": 8,
+                "column": 8
+              },
+              "end": {
+                "line": 10,
+                "column": 8
+              }
+            },
+            "moduleName": "elosh-client/templates/about.hbs"
+          },
+          arity: 0,
           cachedFragment: null,
           hasRendered: false,
-          build: function build(dom) {
+          buildFragment: function buildFragment(dom) {
             var el0 = dom.createDocumentFragment();
             var el1 = dom.createTextNode("          ");
             dom.appendChild(el0, el1);
@@ -1038,42 +1099,42 @@ define('elosh-client/templates/about', ['exports'], function (exports) {
             dom.appendChild(el0, el1);
             return el0;
           },
-          render: function render(context, env, contextualElement) {
-            var dom = env.dom;
-            var hooks = env.hooks, element = hooks.element, content = hooks.content;
-            dom.detectNamespace(contextualElement);
-            var fragment;
-            if (env.useFragmentCache && dom.canClone) {
-              if (this.cachedFragment === null) {
-                fragment = this.build(dom);
-                if (this.hasRendered) {
-                  this.cachedFragment = fragment;
-                } else {
-                  this.hasRendered = true;
-                }
-              }
-              if (this.cachedFragment) {
-                fragment = dom.cloneNode(this.cachedFragment, true);
-              }
-            } else {
-              fragment = this.build(dom);
-            }
+          buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
             var element1 = dom.childAt(fragment, [1, 0]);
-            var morph0 = dom.createMorphAt(element1,0,0);
-            element(env, element1, context, "bind-attr", [], {"href": "model.contact.mailTo"});
-            content(env, morph0, context, "model.contact.email");
-            return fragment;
-          }
+            var morphs = new Array(2);
+            morphs[0] = dom.createAttrMorph(element1, 'href');
+            morphs[1] = dom.createMorphAt(element1,0,0);
+            return morphs;
+          },
+          statements: [
+            ["attribute","href",["concat",[["get","model.contact.mailTo",["loc",[null,[9,24],[9,44]]]]]]],
+            ["content","model.contact.email",["loc",[null,[9,88],[9,111]]]]
+          ],
+          locals: [],
+          templates: []
         };
       }());
       var child1 = (function() {
         return {
-          isHTMLBars: true,
-          revision: "Ember@1.12.0",
-          blockParams: 0,
+          meta: {
+            "revision": "Ember@1.13.3",
+            "loc": {
+              "source": null,
+              "start": {
+                "line": 11,
+                "column": 8
+              },
+              "end": {
+                "line": 13,
+                "column": 8
+              }
+            },
+            "moduleName": "elosh-client/templates/about.hbs"
+          },
+          arity: 0,
           cachedFragment: null,
           hasRendered: false,
-          build: function build(dom) {
+          buildFragment: function buildFragment(dom) {
             var el0 = dom.createDocumentFragment();
             var el1 = dom.createTextNode("          ");
             dom.appendChild(el0, el1);
@@ -1085,40 +1146,39 @@ define('elosh-client/templates/about', ['exports'], function (exports) {
             dom.appendChild(el0, el1);
             return el0;
           },
-          render: function render(context, env, contextualElement) {
-            var dom = env.dom;
-            var hooks = env.hooks, content = hooks.content;
-            dom.detectNamespace(contextualElement);
-            var fragment;
-            if (env.useFragmentCache && dom.canClone) {
-              if (this.cachedFragment === null) {
-                fragment = this.build(dom);
-                if (this.hasRendered) {
-                  this.cachedFragment = fragment;
-                } else {
-                  this.hasRendered = true;
-                }
-              }
-              if (this.cachedFragment) {
-                fragment = dom.cloneNode(this.cachedFragment, true);
-              }
-            } else {
-              fragment = this.build(dom);
-            }
-            var morph0 = dom.createMorphAt(dom.childAt(fragment, [1]),0,0);
-            content(env, morph0, context, "model.contact.phone");
-            return fragment;
-          }
+          buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+            var morphs = new Array(1);
+            morphs[0] = dom.createMorphAt(dom.childAt(fragment, [1]),0,0);
+            return morphs;
+          },
+          statements: [
+            ["content","model.contact.phone",["loc",[null,[12,13],[12,36]]]]
+          ],
+          locals: [],
+          templates: []
         };
       }());
       var child2 = (function() {
         return {
-          isHTMLBars: true,
-          revision: "Ember@1.12.0",
-          blockParams: 0,
+          meta: {
+            "revision": "Ember@1.13.3",
+            "loc": {
+              "source": null,
+              "start": {
+                "line": 14,
+                "column": 8
+              },
+              "end": {
+                "line": 16,
+                "column": 8
+              }
+            },
+            "moduleName": "elosh-client/templates/about.hbs"
+          },
+          arity: 0,
           cachedFragment: null,
           hasRendered: false,
-          build: function build(dom) {
+          buildFragment: function buildFragment(dom) {
             var el0 = dom.createDocumentFragment();
             var el1 = dom.createTextNode("          ");
             dom.appendChild(el0, el1);
@@ -1138,42 +1198,42 @@ define('elosh-client/templates/about', ['exports'], function (exports) {
             dom.appendChild(el0, el1);
             return el0;
           },
-          render: function render(context, env, contextualElement) {
-            var dom = env.dom;
-            var hooks = env.hooks, element = hooks.element, content = hooks.content;
-            dom.detectNamespace(contextualElement);
-            var fragment;
-            if (env.useFragmentCache && dom.canClone) {
-              if (this.cachedFragment === null) {
-                fragment = this.build(dom);
-                if (this.hasRendered) {
-                  this.cachedFragment = fragment;
-                } else {
-                  this.hasRendered = true;
-                }
-              }
-              if (this.cachedFragment) {
-                fragment = dom.cloneNode(this.cachedFragment, true);
-              }
-            } else {
-              fragment = this.build(dom);
-            }
+          buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
             var element0 = dom.childAt(fragment, [1, 1]);
-            var morph0 = dom.createMorphAt(element0,1,1);
-            element(env, element0, context, "bind-attr", [], {"href": "model.contact.twitterLink"});
-            content(env, morph0, context, "model.contact.twitter");
-            return fragment;
-          }
+            var morphs = new Array(2);
+            morphs[0] = dom.createAttrMorph(element0, 'href');
+            morphs[1] = dom.createMorphAt(element0,1,1);
+            return morphs;
+          },
+          statements: [
+            ["attribute","href",["concat",[["get","model.contact.twitterLink",["loc",[null,[15,33],[15,58]]]]]]],
+            ["content","model.contact.twitter",["loc",[null,[15,107],[15,132]]]]
+          ],
+          locals: [],
+          templates: []
         };
       }());
       var child3 = (function() {
         return {
-          isHTMLBars: true,
-          revision: "Ember@1.12.0",
-          blockParams: 0,
+          meta: {
+            "revision": "Ember@1.13.3",
+            "loc": {
+              "source": null,
+              "start": {
+                "line": 19,
+                "column": 6
+              },
+              "end": {
+                "line": 23,
+                "column": 6
+              }
+            },
+            "moduleName": "elosh-client/templates/about.hbs"
+          },
+          arity: 0,
           cachedFragment: null,
           hasRendered: false,
-          build: function build(dom) {
+          buildFragment: function buildFragment(dom) {
             var el0 = dom.createDocumentFragment();
             var el1 = dom.createTextNode("        ");
             dom.appendChild(el0, el1);
@@ -1190,40 +1250,39 @@ define('elosh-client/templates/about', ['exports'], function (exports) {
             dom.appendChild(el0, el1);
             return el0;
           },
-          render: function render(context, env, contextualElement) {
-            var dom = env.dom;
-            var hooks = env.hooks, content = hooks.content;
-            dom.detectNamespace(contextualElement);
-            var fragment;
-            if (env.useFragmentCache && dom.canClone) {
-              if (this.cachedFragment === null) {
-                fragment = this.build(dom);
-                if (this.hasRendered) {
-                  this.cachedFragment = fragment;
-                } else {
-                  this.hasRendered = true;
-                }
-              }
-              if (this.cachedFragment) {
-                fragment = dom.cloneNode(this.cachedFragment, true);
-              }
-            } else {
-              fragment = this.build(dom);
-            }
-            var morph0 = dom.createUnsafeMorphAt(dom.childAt(fragment, [1]),1,1);
-            content(env, morph0, context, "model.about.narrativeOne");
-            return fragment;
-          }
+          buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+            var morphs = new Array(1);
+            morphs[0] = dom.createUnsafeMorphAt(dom.childAt(fragment, [1]),1,1);
+            return morphs;
+          },
+          statements: [
+            ["content","model.about.narrativeOne",["loc",[null,[21,10],[21,40]]]]
+          ],
+          locals: [],
+          templates: []
         };
       }());
       var child4 = (function() {
         return {
-          isHTMLBars: true,
-          revision: "Ember@1.12.0",
-          blockParams: 0,
+          meta: {
+            "revision": "Ember@1.13.3",
+            "loc": {
+              "source": null,
+              "start": {
+                "line": 25,
+                "column": 6
+              },
+              "end": {
+                "line": 30,
+                "column": 6
+              }
+            },
+            "moduleName": "elosh-client/templates/about.hbs"
+          },
+          arity: 0,
           cachedFragment: null,
           hasRendered: false,
-          build: function build(dom) {
+          buildFragment: function buildFragment(dom) {
             var el0 = dom.createDocumentFragment();
             var el1 = dom.createTextNode("        ");
             dom.appendChild(el0, el1);
@@ -1245,39 +1304,38 @@ define('elosh-client/templates/about', ['exports'], function (exports) {
             dom.appendChild(el0, el1);
             return el0;
           },
-          render: function render(context, env, contextualElement) {
-            var dom = env.dom;
-            var hooks = env.hooks, content = hooks.content;
-            dom.detectNamespace(contextualElement);
-            var fragment;
-            if (env.useFragmentCache && dom.canClone) {
-              if (this.cachedFragment === null) {
-                fragment = this.build(dom);
-                if (this.hasRendered) {
-                  this.cachedFragment = fragment;
-                } else {
-                  this.hasRendered = true;
-                }
-              }
-              if (this.cachedFragment) {
-                fragment = dom.cloneNode(this.cachedFragment, true);
-              }
-            } else {
-              fragment = this.build(dom);
-            }
-            var morph0 = dom.createUnsafeMorphAt(dom.childAt(fragment, [3]),1,1);
-            content(env, morph0, context, "model.about.narrativeTwo");
-            return fragment;
-          }
+          buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+            var morphs = new Array(1);
+            morphs[0] = dom.createUnsafeMorphAt(dom.childAt(fragment, [3]),1,1);
+            return morphs;
+          },
+          statements: [
+            ["content","model.about.narrativeTwo",["loc",[null,[28,10],[28,40]]]]
+          ],
+          locals: [],
+          templates: []
         };
       }());
       return {
-        isHTMLBars: true,
-        revision: "Ember@1.12.0",
-        blockParams: 0,
+        meta: {
+          "revision": "Ember@1.13.3",
+          "loc": {
+            "source": null,
+            "start": {
+              "line": 4,
+              "column": 2
+            },
+            "end": {
+              "line": 32,
+              "column": 2
+            }
+          },
+          "moduleName": "elosh-client/templates/about.hbs"
+        },
+        arity: 0,
         cachedFragment: null,
         hasRendered: false,
-        build: function build(dom) {
+        buildFragment: function buildFragment(dom) {
           var el0 = dom.createDocumentFragment();
           var el1 = dom.createTextNode("    ");
           dom.appendChild(el0, el1);
@@ -1321,49 +1379,48 @@ define('elosh-client/templates/about', ['exports'], function (exports) {
           dom.appendChild(el0, el1);
           return el0;
         },
-        render: function render(context, env, contextualElement) {
-          var dom = env.dom;
-          var hooks = env.hooks, get = hooks.get, block = hooks.block;
-          dom.detectNamespace(contextualElement);
-          var fragment;
-          if (env.useFragmentCache && dom.canClone) {
-            if (this.cachedFragment === null) {
-              fragment = this.build(dom);
-              if (this.hasRendered) {
-                this.cachedFragment = fragment;
-              } else {
-                this.hasRendered = true;
-              }
-            }
-            if (this.cachedFragment) {
-              fragment = dom.cloneNode(this.cachedFragment, true);
-            }
-          } else {
-            fragment = this.build(dom);
-          }
+        buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
           var element2 = dom.childAt(fragment, [1]);
           var element3 = dom.childAt(element2, [1]);
-          var morph0 = dom.createMorphAt(element3,3,3);
-          var morph1 = dom.createMorphAt(element3,4,4);
-          var morph2 = dom.createMorphAt(element3,5,5);
-          var morph3 = dom.createMorphAt(element2,3,3);
-          var morph4 = dom.createMorphAt(element2,5,5);
-          block(env, morph0, context, "if", [get(env, context, "model.contact.email")], {}, child0, null);
-          block(env, morph1, context, "if", [get(env, context, "model.contact.phone")], {}, child1, null);
-          block(env, morph2, context, "if", [get(env, context, "model.contact.twitter")], {}, child2, null);
-          block(env, morph3, context, "if", [get(env, context, "model.about.narrativeOne")], {}, child3, null);
-          block(env, morph4, context, "if", [get(env, context, "model.about.narrativeTwo")], {}, child4, null);
-          return fragment;
-        }
+          var morphs = new Array(5);
+          morphs[0] = dom.createMorphAt(element3,3,3);
+          morphs[1] = dom.createMorphAt(element3,4,4);
+          morphs[2] = dom.createMorphAt(element3,5,5);
+          morphs[3] = dom.createMorphAt(element2,3,3);
+          morphs[4] = dom.createMorphAt(element2,5,5);
+          return morphs;
+        },
+        statements: [
+          ["block","if",[["get","model.contact.email",["loc",[null,[8,14],[8,33]]]]],[],0,null,["loc",[null,[8,8],[10,15]]]],
+          ["block","if",[["get","model.contact.phone",["loc",[null,[11,14],[11,33]]]]],[],1,null,["loc",[null,[11,8],[13,15]]]],
+          ["block","if",[["get","model.contact.twitter",["loc",[null,[14,14],[14,35]]]]],[],2,null,["loc",[null,[14,8],[16,15]]]],
+          ["block","if",[["get","model.about.narrativeOne",["loc",[null,[19,12],[19,36]]]]],[],3,null,["loc",[null,[19,6],[23,13]]]],
+          ["block","if",[["get","model.about.narrativeTwo",["loc",[null,[25,12],[25,36]]]]],[],4,null,["loc",[null,[25,6],[30,13]]]]
+        ],
+        locals: [],
+        templates: [child0, child1, child2, child3, child4]
       };
     }());
     return {
-      isHTMLBars: true,
-      revision: "Ember@1.12.0",
-      blockParams: 0,
+      meta: {
+        "revision": "Ember@1.13.3",
+        "loc": {
+          "source": null,
+          "start": {
+            "line": 1,
+            "column": 0
+          },
+          "end": {
+            "line": 35,
+            "column": 0
+          }
+        },
+        "moduleName": "elosh-client/templates/about.hbs"
+      },
+      arity: 0,
       cachedFragment: null,
       hasRendered: false,
-      build: function build(dom) {
+      buildFragment: function buildFragment(dom) {
         var el0 = dom.createDocumentFragment();
         var el1 = dom.createElement("div");
         dom.setAttribute(el1,"id","about");
@@ -1383,33 +1440,20 @@ define('elosh-client/templates/about', ['exports'], function (exports) {
         dom.appendChild(el0, el1);
         return el0;
       },
-      render: function render(context, env, contextualElement) {
-        var dom = env.dom;
-        var hooks = env.hooks, element = hooks.element, get = hooks.get, block = hooks.block;
-        dom.detectNamespace(contextualElement);
-        var fragment;
-        if (env.useFragmentCache && dom.canClone) {
-          if (this.cachedFragment === null) {
-            fragment = this.build(dom);
-            if (this.hasRendered) {
-              this.cachedFragment = fragment;
-            } else {
-              this.hasRendered = true;
-            }
-          }
-          if (this.cachedFragment) {
-            fragment = dom.cloneNode(this.cachedFragment, true);
-          }
-        } else {
-          fragment = this.build(dom);
-        }
+      buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
         var element4 = dom.childAt(fragment, [0]);
         var element5 = dom.childAt(element4, [1]);
-        var morph0 = dom.createMorphAt(element4,3,3);
-        element(env, element5, context, "bind-attr", [], {"src": "model.about.image.url"});
-        block(env, morph0, context, "max-width", [], {"width": get(env, context, "model.about.image.width")}, child0, null);
-        return fragment;
-      }
+        var morphs = new Array(2);
+        morphs[0] = dom.createAttrMorph(element5, 'src');
+        morphs[1] = dom.createMorphAt(element4,3,3);
+        return morphs;
+      },
+      statements: [
+        ["attribute","src",["concat",[["get","model.about.image.url",["loc",[null,[2,14],[2,35]]]]]]],
+        ["block","max-width",[],["width",["subexpr","@mut",[["get","model.about.image.width",["loc",[null,[4,21],[4,44]]]]],[],[]]],0,null,["loc",[null,[4,2],[32,16]]]]
+      ],
+      locals: [],
+      templates: [child0]
     };
   }()));
 
@@ -1421,51 +1465,64 @@ define('elosh-client/templates/application', ['exports'], function (exports) {
   exports['default'] = Ember.HTMLBars.template((function() {
     var child0 = (function() {
       return {
-        isHTMLBars: true,
-        revision: "Ember@1.12.0",
-        blockParams: 0,
+        meta: {
+          "revision": "Ember@1.13.3",
+          "loc": {
+            "source": null,
+            "start": {
+              "line": 3,
+              "column": 4
+            },
+            "end": {
+              "line": 3,
+              "column": 65
+            }
+          },
+          "moduleName": "elosh-client/templates/application.hbs"
+        },
+        arity: 0,
         cachedFragment: null,
         hasRendered: false,
-        build: function build(dom) {
+        buildFragment: function buildFragment(dom) {
           var el0 = dom.createDocumentFragment();
           var el1 = dom.createElement("img");
           dom.setAttribute(el1,"alt","Eric Losh");
           dom.appendChild(el0, el1);
           return el0;
         },
-        render: function render(context, env, contextualElement) {
-          var dom = env.dom;
-          var hooks = env.hooks, get = hooks.get, element = hooks.element;
-          dom.detectNamespace(contextualElement);
-          var fragment;
-          if (env.useFragmentCache && dom.canClone) {
-            if (this.cachedFragment === null) {
-              fragment = this.build(dom);
-              if (this.hasRendered) {
-                this.cachedFragment = fragment;
-              } else {
-                this.hasRendered = true;
-              }
-            }
-            if (this.cachedFragment) {
-              fragment = dom.cloneNode(this.cachedFragment, true);
-            }
-          } else {
-            fragment = this.build(dom);
-          }
+        buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
           var element0 = dom.childAt(fragment, [0]);
-          element(env, element0, context, "bind-attr", [], {"src": get(env, context, "logoURL")});
-          return fragment;
-        }
+          var morphs = new Array(1);
+          morphs[0] = dom.createAttrMorph(element0, 'src');
+          return morphs;
+        },
+        statements: [
+          ["attribute","src",["concat",[["get","logoURL",["loc",[null,[3,36],[3,43]]]]]]]
+        ],
+        locals: [],
+        templates: []
       };
     }());
     return {
-      isHTMLBars: true,
-      revision: "Ember@1.12.0",
-      blockParams: 0,
+      meta: {
+        "revision": "Ember@1.13.3",
+        "loc": {
+          "source": null,
+          "start": {
+            "line": 1,
+            "column": 0
+          },
+          "end": {
+            "line": 25,
+            "column": 0
+          }
+        },
+        "moduleName": "elosh-client/templates/application.hbs"
+      },
+      arity: 0,
       cachedFragment: null,
       hasRendered: false,
-      build: function build(dom) {
+      buildFragment: function buildFragment(dom) {
         var el0 = dom.createDocumentFragment();
         var el1 = dom.createElement("div");
         dom.setAttribute(el1,"id","left-nav");
@@ -1558,41 +1615,29 @@ define('elosh-client/templates/application', ['exports'], function (exports) {
         dom.appendChild(el0, el1);
         return el0;
       },
-      render: function render(context, env, contextualElement) {
-        var dom = env.dom;
-        var hooks = env.hooks, block = hooks.block, inline = hooks.inline, get = hooks.get, element = hooks.element, content = hooks.content;
-        dom.detectNamespace(contextualElement);
-        var fragment;
-        if (env.useFragmentCache && dom.canClone) {
-          if (this.cachedFragment === null) {
-            fragment = this.build(dom);
-            if (this.hasRendered) {
-              this.cachedFragment = fragment;
-            } else {
-              this.hasRendered = true;
-            }
-          }
-          if (this.cachedFragment) {
-            fragment = dom.cloneNode(this.cachedFragment, true);
-          }
-        } else {
-          fragment = this.build(dom);
-        }
+      buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
         var element1 = dom.childAt(fragment, [0]);
         var element2 = dom.childAt(element1, [5, 1]);
         var element3 = dom.childAt(fragment, [4]);
-        var morph0 = dom.createMorphAt(dom.childAt(element1, [1]),1,1);
-        var morph1 = dom.createMorphAt(element1,3,3);
-        var morph2 = dom.createMorphAt(dom.childAt(fragment, [2, 1, 1]),1,1);
-        var morph3 = dom.createMorphAt(dom.childAt(element3, [1]),1,1);
-        block(env, morph0, context, "link-to", ["index"], {}, child0, null);
-        inline(env, morph1, context, "partial", ["partials/main-navigation"], {});
-        element(env, element2, context, "bind-attr", [], {"src": get(env, context, "footerLogoURL")});
-        content(env, morph2, context, "outlet");
-        element(env, element3, context, "bind-attr", [], {"class": "modalOpen:show"});
-        inline(env, morph3, context, "outlet", ["modal"], {});
-        return fragment;
-      }
+        var morphs = new Array(6);
+        morphs[0] = dom.createMorphAt(dom.childAt(element1, [1]),1,1);
+        morphs[1] = dom.createMorphAt(element1,3,3);
+        morphs[2] = dom.createAttrMorph(element2, 'src');
+        morphs[3] = dom.createMorphAt(dom.childAt(fragment, [2, 1, 1]),1,1);
+        morphs[4] = dom.createAttrMorph(element3, 'class');
+        morphs[5] = dom.createMorphAt(dom.childAt(element3, [1]),1,1);
+        return morphs;
+      },
+      statements: [
+        ["block","link-to",["index"],[],0,null,["loc",[null,[3,4],[3,77]]]],
+        ["inline","partial",["partials/main-navigation"],[],["loc",[null,[5,2],[5,40]]]],
+        ["attribute","src",["concat",[["get","footerLogoURL",["loc",[null,[7,16],[7,29]]]]]]],
+        ["content","outlet",["loc",[null,[15,6],[15,16]]]],
+        ["attribute","class",["concat",[["subexpr","if",[["get","modalOpen",["loc",[null,[20,28],[20,37]]]],"show"],[],["loc",[null,[20,23],[20,46]]]]]]],
+        ["inline","outlet",["modal"],[],["loc",[null,[22,4],[22,22]]]]
+      ],
+      locals: [],
+      templates: [child0]
     };
   }()));
 
@@ -1604,12 +1649,25 @@ define('elosh-client/templates/artwork/category', ['exports'], function (exports
   exports['default'] = Ember.HTMLBars.template((function() {
     var child0 = (function() {
       return {
-        isHTMLBars: true,
-        revision: "Ember@1.12.0",
-        blockParams: 0,
+        meta: {
+          "revision": "Ember@1.13.3",
+          "loc": {
+            "source": null,
+            "start": {
+              "line": 2,
+              "column": 0
+            },
+            "end": {
+              "line": 6,
+              "column": 0
+            }
+          },
+          "moduleName": "elosh-client/templates/artwork/category.hbs"
+        },
+        arity: 0,
         cachedFragment: null,
         hasRendered: false,
-        build: function build(dom) {
+        buildFragment: function buildFragment(dom) {
           var el0 = dom.createDocumentFragment();
           var el1 = dom.createTextNode("  ");
           dom.appendChild(el0, el1);
@@ -1626,39 +1684,41 @@ define('elosh-client/templates/artwork/category', ['exports'], function (exports
           dom.appendChild(el0, el1);
           return el0;
         },
-        render: function render(context, env, contextualElement) {
-          var dom = env.dom;
-          var hooks = env.hooks, element = hooks.element;
-          dom.detectNamespace(contextualElement);
-          var fragment;
-          if (env.useFragmentCache && dom.canClone) {
-            if (this.cachedFragment === null) {
-              fragment = this.build(dom);
-              if (this.hasRendered) {
-                this.cachedFragment = fragment;
-              } else {
-                this.hasRendered = true;
-              }
-            }
-            if (this.cachedFragment) {
-              fragment = dom.cloneNode(this.cachedFragment, true);
-            }
-          } else {
-            fragment = this.build(dom);
-          }
+        buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
           var element0 = dom.childAt(fragment, [1, 1]);
-          element(env, element0, context, "bind-attr", [], {"src": "model.category.categoryDescription", "alt": "model.category.name"});
-          return fragment;
-        }
+          var morphs = new Array(2);
+          morphs[0] = dom.createAttrMorph(element0, 'src');
+          morphs[1] = dom.createAttrMorph(element0, 'alt');
+          return morphs;
+        },
+        statements: [
+          ["attribute","src",["concat",[["get","model.category.categoryDescription",["loc",[null,[4,16],[4,50]]]]]]],
+          ["attribute","alt",["concat",[["get","model.category.name",["loc",[null,[4,61],[4,80]]]]]]]
+        ],
+        locals: [],
+        templates: []
       };
     }());
     return {
-      isHTMLBars: true,
-      revision: "Ember@1.12.0",
-      blockParams: 0,
+      meta: {
+        "revision": "Ember@1.13.3",
+        "loc": {
+          "source": null,
+          "start": {
+            "line": 1,
+            "column": 0
+          },
+          "end": {
+            "line": 9,
+            "column": 0
+          }
+        },
+        "moduleName": "elosh-client/templates/artwork/category.hbs"
+      },
+      arity: 0,
       cachedFragment: null,
       hasRendered: false,
-      build: function build(dom) {
+      buildFragment: function buildFragment(dom) {
         var el0 = dom.createDocumentFragment();
         var el1 = dom.createElement("h1");
         dom.setAttribute(el1,"class","artwork-category-title");
@@ -1677,34 +1737,20 @@ define('elosh-client/templates/artwork/category', ['exports'], function (exports
         dom.appendChild(el0, el1);
         return el0;
       },
-      render: function render(context, env, contextualElement) {
-        var dom = env.dom;
-        var hooks = env.hooks, content = hooks.content, get = hooks.get, block = hooks.block, inline = hooks.inline;
-        dom.detectNamespace(contextualElement);
-        var fragment;
-        if (env.useFragmentCache && dom.canClone) {
-          if (this.cachedFragment === null) {
-            fragment = this.build(dom);
-            if (this.hasRendered) {
-              this.cachedFragment = fragment;
-            } else {
-              this.hasRendered = true;
-            }
-          }
-          if (this.cachedFragment) {
-            fragment = dom.cloneNode(this.cachedFragment, true);
-          }
-        } else {
-          fragment = this.build(dom);
-        }
-        var morph0 = dom.createMorphAt(dom.childAt(fragment, [0]),0,0);
-        var morph1 = dom.createMorphAt(fragment,2,2,contextualElement);
-        var morph2 = dom.createMorphAt(fragment,4,4,contextualElement);
-        content(env, morph0, context, "model.category.name");
-        block(env, morph1, context, "if", [get(env, context, "model.category.categoryDescription")], {}, child0, null);
-        inline(env, morph2, context, "partial", ["partials/artwork-thumbnails"], {});
-        return fragment;
-      }
+      buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+        var morphs = new Array(3);
+        morphs[0] = dom.createMorphAt(dom.childAt(fragment, [0]),0,0);
+        morphs[1] = dom.createMorphAt(fragment,2,2,contextualElement);
+        morphs[2] = dom.createMorphAt(fragment,4,4,contextualElement);
+        return morphs;
+      },
+      statements: [
+        ["content","model.category.name",["loc",[null,[1,35],[1,58]]]],
+        ["block","if",[["get","model.category.categoryDescription",["loc",[null,[2,6],[2,40]]]]],[],0,null,["loc",[null,[2,0],[6,7]]]],
+        ["inline","partial",["partials/artwork-thumbnails"],[],["loc",[null,[8,0],[8,41]]]]
+      ],
+      locals: [],
+      templates: [child0]
     };
   }()));
 
@@ -1715,12 +1761,25 @@ define('elosh-client/templates/artwork/category/show', ['exports'], function (ex
 
   exports['default'] = Ember.HTMLBars.template((function() {
     return {
-      isHTMLBars: true,
-      revision: "Ember@1.12.0",
-      blockParams: 0,
+      meta: {
+        "revision": "Ember@1.13.3",
+        "loc": {
+          "source": null,
+          "start": {
+            "line": 1,
+            "column": 0
+          },
+          "end": {
+            "line": 2,
+            "column": 0
+          }
+        },
+        "moduleName": "elosh-client/templates/artwork/category/show.hbs"
+      },
+      arity: 0,
       cachedFragment: null,
       hasRendered: false,
-      build: function build(dom) {
+      buildFragment: function buildFragment(dom) {
         var el0 = dom.createDocumentFragment();
         var el1 = dom.createComment("");
         dom.appendChild(el0, el1);
@@ -1728,31 +1787,17 @@ define('elosh-client/templates/artwork/category/show', ['exports'], function (ex
         dom.appendChild(el0, el1);
         return el0;
       },
-      render: function render(context, env, contextualElement) {
-        var dom = env.dom;
-        var hooks = env.hooks, get = hooks.get, inline = hooks.inline;
-        dom.detectNamespace(contextualElement);
-        var fragment;
-        if (env.useFragmentCache && dom.canClone) {
-          if (this.cachedFragment === null) {
-            fragment = this.build(dom);
-            if (this.hasRendered) {
-              this.cachedFragment = fragment;
-            } else {
-              this.hasRendered = true;
-            }
-          }
-          if (this.cachedFragment) {
-            fragment = dom.cloneNode(this.cachedFragment, true);
-          }
-        } else {
-          fragment = this.build(dom);
-        }
-        var morph0 = dom.createMorphAt(fragment,0,0,contextualElement);
+      buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+        var morphs = new Array(1);
+        morphs[0] = dom.createMorphAt(fragment,0,0,contextualElement);
         dom.insertBoundary(fragment, 0);
-        inline(env, morph0, context, "art-modal", [], {"art": get(env, context, "model"), "closeModal": "closeModal", "nextItem": "nextItem", "previousItem": "previousItem"});
-        return fragment;
-      }
+        return morphs;
+      },
+      statements: [
+        ["inline","art-modal",[],["art",["subexpr","@mut",[["get","model",["loc",[null,[1,16],[1,21]]]]],[],[]],"closeModal","closeModal","nextItem","nextItem","previousItem","previousItem"],["loc",[null,[1,0],[1,95]]]]
+      ],
+      locals: [],
+      templates: []
     };
   }()));
 
@@ -1764,12 +1809,25 @@ define('elosh-client/templates/books/show', ['exports'], function (exports) {
   exports['default'] = Ember.HTMLBars.template((function() {
     var child0 = (function() {
       return {
-        isHTMLBars: true,
-        revision: "Ember@1.12.0",
-        blockParams: 0,
+        meta: {
+          "revision": "Ember@1.13.3",
+          "loc": {
+            "source": null,
+            "start": {
+              "line": 2,
+              "column": 2
+            },
+            "end": {
+              "line": 4,
+              "column": 2
+            }
+          },
+          "moduleName": "elosh-client/templates/books/show.hbs"
+        },
+        arity: 0,
         cachedFragment: null,
         hasRendered: false,
-        build: function build(dom) {
+        buildFragment: function buildFragment(dom) {
           var el0 = dom.createDocumentFragment();
           var el1 = dom.createTextNode("    ");
           dom.appendChild(el0, el1);
@@ -1790,43 +1848,42 @@ define('elosh-client/templates/books/show', ['exports'], function (exports) {
           dom.appendChild(el0, el1);
           return el0;
         },
-        render: function render(context, env, contextualElement) {
-          var dom = env.dom;
-          var hooks = env.hooks, content = hooks.content;
-          dom.detectNamespace(contextualElement);
-          var fragment;
-          if (env.useFragmentCache && dom.canClone) {
-            if (this.cachedFragment === null) {
-              fragment = this.build(dom);
-              if (this.hasRendered) {
-                this.cachedFragment = fragment;
-              } else {
-                this.hasRendered = true;
-              }
-            }
-            if (this.cachedFragment) {
-              fragment = dom.cloneNode(this.cachedFragment, true);
-            }
-          } else {
-            fragment = this.build(dom);
-          }
+        buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
           var element0 = dom.childAt(fragment, [1]);
-          var morph0 = dom.createMorphAt(element0,0,0);
-          var morph1 = dom.createMorphAt(dom.childAt(element0, [2]),1,1);
-          content(env, morph0, context, "model.title");
-          content(env, morph1, context, "model.titleNotes");
-          return fragment;
-        }
+          var morphs = new Array(2);
+          morphs[0] = dom.createMorphAt(element0,0,0);
+          morphs[1] = dom.createMorphAt(dom.childAt(element0, [2]),1,1);
+          return morphs;
+        },
+        statements: [
+          ["content","model.title",["loc",[null,[3,27],[3,42]]]],
+          ["content","model.titleNotes",["loc",[null,[3,51],[3,71]]]]
+        ],
+        locals: [],
+        templates: []
       };
     }());
     var child1 = (function() {
       return {
-        isHTMLBars: true,
-        revision: "Ember@1.12.0",
-        blockParams: 0,
+        meta: {
+          "revision": "Ember@1.13.3",
+          "loc": {
+            "source": null,
+            "start": {
+              "line": 4,
+              "column": 2
+            },
+            "end": {
+              "line": 6,
+              "column": 2
+            }
+          },
+          "moduleName": "elosh-client/templates/books/show.hbs"
+        },
+        arity: 0,
         cachedFragment: null,
         hasRendered: false,
-        build: function build(dom) {
+        buildFragment: function buildFragment(dom) {
           var el0 = dom.createDocumentFragment();
           var el1 = dom.createTextNode("    ");
           dom.appendChild(el0, el1);
@@ -1839,39 +1896,38 @@ define('elosh-client/templates/books/show', ['exports'], function (exports) {
           dom.appendChild(el0, el1);
           return el0;
         },
-        render: function render(context, env, contextualElement) {
-          var dom = env.dom;
-          var hooks = env.hooks, content = hooks.content;
-          dom.detectNamespace(contextualElement);
-          var fragment;
-          if (env.useFragmentCache && dom.canClone) {
-            if (this.cachedFragment === null) {
-              fragment = this.build(dom);
-              if (this.hasRendered) {
-                this.cachedFragment = fragment;
-              } else {
-                this.hasRendered = true;
-              }
-            }
-            if (this.cachedFragment) {
-              fragment = dom.cloneNode(this.cachedFragment, true);
-            }
-          } else {
-            fragment = this.build(dom);
-          }
-          var morph0 = dom.createMorphAt(dom.childAt(fragment, [1]),0,0);
-          content(env, morph0, context, "model.title");
-          return fragment;
-        }
+        buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+          var morphs = new Array(1);
+          morphs[0] = dom.createMorphAt(dom.childAt(fragment, [1]),0,0);
+          return morphs;
+        },
+        statements: [
+          ["content","model.title",["loc",[null,[5,27],[5,42]]]]
+        ],
+        locals: [],
+        templates: []
       };
     }());
     return {
-      isHTMLBars: true,
-      revision: "Ember@1.12.0",
-      blockParams: 0,
+      meta: {
+        "revision": "Ember@1.13.3",
+        "loc": {
+          "source": null,
+          "start": {
+            "line": 1,
+            "column": 0
+          },
+          "end": {
+            "line": 32,
+            "column": 0
+          }
+        },
+        "moduleName": "elosh-client/templates/books/show.hbs"
+      },
+      arity: 0,
       cachedFragment: null,
       hasRendered: false,
-      build: function build(dom) {
+      buildFragment: function buildFragment(dom) {
         var el0 = dom.createDocumentFragment();
         var el1 = dom.createElement("div");
         dom.setAttribute(el1,"id","books");
@@ -1959,41 +2015,29 @@ define('elosh-client/templates/books/show', ['exports'], function (exports) {
         dom.appendChild(el0, el1);
         return el0;
       },
-      render: function render(context, env, contextualElement) {
-        var dom = env.dom;
-        var hooks = env.hooks, get = hooks.get, block = hooks.block, element = hooks.element, content = hooks.content, inline = hooks.inline;
-        dom.detectNamespace(contextualElement);
-        var fragment;
-        if (env.useFragmentCache && dom.canClone) {
-          if (this.cachedFragment === null) {
-            fragment = this.build(dom);
-            if (this.hasRendered) {
-              this.cachedFragment = fragment;
-            } else {
-              this.hasRendered = true;
-            }
-          }
-          if (this.cachedFragment) {
-            fragment = dom.cloneNode(this.cachedFragment, true);
-          }
-        } else {
-          fragment = this.build(dom);
-        }
+      buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
         var element1 = dom.childAt(fragment, [0]);
         var element2 = dom.childAt(element1, [3]);
         var element3 = dom.childAt(element2, [1, 1]);
         var element4 = dom.childAt(element2, [3, 1]);
         var element5 = dom.childAt(element1, [5]);
-        var morph0 = dom.createMorphAt(element1,1,1);
-        var morph1 = dom.createUnsafeMorphAt(dom.childAt(element5, [1, 1]),1,1);
-        var morph2 = dom.createMorphAt(dom.childAt(element5, [3, 1]),1,1);
-        block(env, morph0, context, "if", [get(env, context, "model.titleNotes")], {}, child0, child1);
-        element(env, element3, context, "bind-attr", [], {"src": "model.bannerImage.url"});
-        element(env, element4, context, "bind-attr", [], {"src": "model.coverImage.url"});
-        content(env, morph1, context, "model.narrative");
-        inline(env, morph2, context, "partial", ["partials/book-thumbnails"], {});
-        return fragment;
-      }
+        var morphs = new Array(5);
+        morphs[0] = dom.createMorphAt(element1,1,1);
+        morphs[1] = dom.createAttrMorph(element3, 'src');
+        morphs[2] = dom.createAttrMorph(element4, 'src');
+        morphs[3] = dom.createUnsafeMorphAt(dom.childAt(element5, [1, 1]),1,1);
+        morphs[4] = dom.createMorphAt(dom.childAt(element5, [3, 1]),1,1);
+        return morphs;
+      },
+      statements: [
+        ["block","if",[["get","model.titleNotes",["loc",[null,[2,8],[2,24]]]]],[],0,1,["loc",[null,[2,2],[6,9]]]],
+        ["attribute","src",["concat",[["get","model.bannerImage.url",["loc",[null,[10,18],[10,39]]]]]]],
+        ["attribute","src",["concat",[["get","model.coverImage.url",["loc",[null,[13,18],[13,38]]]]]]],
+        ["content","model.narrative",["loc",[null,[20,8],[20,29]]]],
+        ["inline","partial",["partials/book-thumbnails"],[],["loc",[null,[26,8],[26,46]]]]
+      ],
+      locals: [],
+      templates: [child0, child1]
     };
   }()));
 
@@ -2004,12 +2048,25 @@ define('elosh-client/templates/books/show/book-page', ['exports'], function (exp
 
   exports['default'] = Ember.HTMLBars.template((function() {
     return {
-      isHTMLBars: true,
-      revision: "Ember@1.12.0",
-      blockParams: 0,
+      meta: {
+        "revision": "Ember@1.13.3",
+        "loc": {
+          "source": null,
+          "start": {
+            "line": 1,
+            "column": 0
+          },
+          "end": {
+            "line": 2,
+            "column": 0
+          }
+        },
+        "moduleName": "elosh-client/templates/books/show/book-page.hbs"
+      },
+      arity: 0,
       cachedFragment: null,
       hasRendered: false,
-      build: function build(dom) {
+      buildFragment: function buildFragment(dom) {
         var el0 = dom.createDocumentFragment();
         var el1 = dom.createComment("");
         dom.appendChild(el0, el1);
@@ -2017,31 +2074,17 @@ define('elosh-client/templates/books/show/book-page', ['exports'], function (exp
         dom.appendChild(el0, el1);
         return el0;
       },
-      render: function render(context, env, contextualElement) {
-        var dom = env.dom;
-        var hooks = env.hooks, get = hooks.get, inline = hooks.inline;
-        dom.detectNamespace(contextualElement);
-        var fragment;
-        if (env.useFragmentCache && dom.canClone) {
-          if (this.cachedFragment === null) {
-            fragment = this.build(dom);
-            if (this.hasRendered) {
-              this.cachedFragment = fragment;
-            } else {
-              this.hasRendered = true;
-            }
-          }
-          if (this.cachedFragment) {
-            fragment = dom.cloneNode(this.cachedFragment, true);
-          }
-        } else {
-          fragment = this.build(dom);
-        }
-        var morph0 = dom.createMorphAt(fragment,0,0,contextualElement);
+      buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+        var morphs = new Array(1);
+        morphs[0] = dom.createMorphAt(fragment,0,0,contextualElement);
         dom.insertBoundary(fragment, 0);
-        inline(env, morph0, context, "art-modal", [], {"art": get(env, context, "model"), "closeModal": "closeModal", "nextItem": "nextItem", "previousItem": "previousItem"});
-        return fragment;
-      }
+        return morphs;
+      },
+      statements: [
+        ["inline","art-modal",[],["art",["subexpr","@mut",[["get","model",["loc",[null,[1,16],[1,21]]]]],[],[]],"closeModal","closeModal","nextItem","nextItem","previousItem","previousItem"],["loc",[null,[1,0],[1,95]]]]
+      ],
+      locals: [],
+      templates: []
     };
   }()));
 
@@ -2053,12 +2096,25 @@ define('elosh-client/templates/components/art-modal', ['exports'], function (exp
   exports['default'] = Ember.HTMLBars.template((function() {
     var child0 = (function() {
       return {
-        isHTMLBars: true,
-        revision: "Ember@1.12.0",
-        blockParams: 0,
+        meta: {
+          "revision": "Ember@1.13.3",
+          "loc": {
+            "source": null,
+            "start": {
+              "line": 2,
+              "column": 2
+            },
+            "end": {
+              "line": 4,
+              "column": 2
+            }
+          },
+          "moduleName": "elosh-client/templates/components/art-modal.hbs"
+        },
+        arity: 0,
         cachedFragment: null,
         hasRendered: false,
-        build: function build(dom) {
+        buildFragment: function buildFragment(dom) {
           var el0 = dom.createDocumentFragment();
           var el1 = dom.createTextNode("    ");
           dom.appendChild(el0, el1);
@@ -2068,40 +2124,42 @@ define('elosh-client/templates/components/art-modal', ['exports'], function (exp
           dom.appendChild(el0, el1);
           return el0;
         },
-        render: function render(context, env, contextualElement) {
-          var dom = env.dom;
-          var hooks = env.hooks, element = hooks.element;
-          dom.detectNamespace(contextualElement);
-          var fragment;
-          if (env.useFragmentCache && dom.canClone) {
-            if (this.cachedFragment === null) {
-              fragment = this.build(dom);
-              if (this.hasRendered) {
-                this.cachedFragment = fragment;
-              } else {
-                this.hasRendered = true;
-              }
-            }
-            if (this.cachedFragment) {
-              fragment = dom.cloneNode(this.cachedFragment, true);
-            }
-          } else {
-            fragment = this.build(dom);
-          }
+        buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
           var element1 = dom.childAt(fragment, [1]);
-          element(env, element1, context, "bind-attr", [], {"src": "imageDataUrl", "alt": "art.title"});
-          return fragment;
-        }
+          var morphs = new Array(2);
+          morphs[0] = dom.createAttrMorph(element1, 'src');
+          morphs[1] = dom.createAttrMorph(element1, 'alt');
+          return morphs;
+        },
+        statements: [
+          ["attribute","src",["concat",[["get","imageDataUrl",["loc",[null,[3,16],[3,28]]]]]]],
+          ["attribute","alt",["concat",[["get","art.title",["loc",[null,[3,39],[3,48]]]]]]]
+        ],
+        locals: [],
+        templates: []
       };
     }());
     var child1 = (function() {
       return {
-        isHTMLBars: true,
-        revision: "Ember@1.12.0",
-        blockParams: 0,
+        meta: {
+          "revision": "Ember@1.13.3",
+          "loc": {
+            "source": null,
+            "start": {
+              "line": 7,
+              "column": 2
+            },
+            "end": {
+              "line": 7,
+              "column": 57
+            }
+          },
+          "moduleName": "elosh-client/templates/components/art-modal.hbs"
+        },
+        arity: 0,
         cachedFragment: null,
         hasRendered: false,
-        build: function build(dom) {
+        buildFragment: function buildFragment(dom) {
           var el0 = dom.createDocumentFragment();
           var el1 = dom.createElement("p");
           dom.setAttribute(el1,"class","art-title");
@@ -2110,40 +2168,39 @@ define('elosh-client/templates/components/art-modal', ['exports'], function (exp
           dom.appendChild(el0, el1);
           return el0;
         },
-        render: function render(context, env, contextualElement) {
-          var dom = env.dom;
-          var hooks = env.hooks, content = hooks.content;
-          dom.detectNamespace(contextualElement);
-          var fragment;
-          if (env.useFragmentCache && dom.canClone) {
-            if (this.cachedFragment === null) {
-              fragment = this.build(dom);
-              if (this.hasRendered) {
-                this.cachedFragment = fragment;
-              } else {
-                this.hasRendered = true;
-              }
-            }
-            if (this.cachedFragment) {
-              fragment = dom.cloneNode(this.cachedFragment, true);
-            }
-          } else {
-            fragment = this.build(dom);
-          }
-          var morph0 = dom.createMorphAt(dom.childAt(fragment, [0]),0,0);
-          content(env, morph0, context, "art.title");
-          return fragment;
-        }
+        buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+          var morphs = new Array(1);
+          morphs[0] = dom.createMorphAt(dom.childAt(fragment, [0]),0,0);
+          return morphs;
+        },
+        statements: [
+          ["content","art.title",["loc",[null,[7,40],[7,53]]]]
+        ],
+        locals: [],
+        templates: []
       };
     }());
     var child2 = (function() {
       return {
-        isHTMLBars: true,
-        revision: "Ember@1.12.0",
-        blockParams: 0,
+        meta: {
+          "revision": "Ember@1.13.3",
+          "loc": {
+            "source": null,
+            "start": {
+              "line": 8,
+              "column": 2
+            },
+            "end": {
+              "line": 8,
+              "column": 66
+            }
+          },
+          "moduleName": "elosh-client/templates/components/art-modal.hbs"
+        },
+        arity: 0,
         cachedFragment: null,
         hasRendered: false,
-        build: function build(dom) {
+        buildFragment: function buildFragment(dom) {
           var el0 = dom.createDocumentFragment();
           var el1 = dom.createElement("p");
           dom.setAttribute(el1,"class","book-title");
@@ -2152,40 +2209,39 @@ define('elosh-client/templates/components/art-modal', ['exports'], function (exp
           dom.appendChild(el0, el1);
           return el0;
         },
-        render: function render(context, env, contextualElement) {
-          var dom = env.dom;
-          var hooks = env.hooks, content = hooks.content;
-          dom.detectNamespace(contextualElement);
-          var fragment;
-          if (env.useFragmentCache && dom.canClone) {
-            if (this.cachedFragment === null) {
-              fragment = this.build(dom);
-              if (this.hasRendered) {
-                this.cachedFragment = fragment;
-              } else {
-                this.hasRendered = true;
-              }
-            }
-            if (this.cachedFragment) {
-              fragment = dom.cloneNode(this.cachedFragment, true);
-            }
-          } else {
-            fragment = this.build(dom);
-          }
-          var morph0 = dom.createMorphAt(dom.childAt(fragment, [0]),0,0);
-          content(env, morph0, context, "art.bookTitle");
-          return fragment;
-        }
+        buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+          var morphs = new Array(1);
+          morphs[0] = dom.createMorphAt(dom.childAt(fragment, [0]),0,0);
+          return morphs;
+        },
+        statements: [
+          ["content","art.bookTitle",["loc",[null,[8,45],[8,62]]]]
+        ],
+        locals: [],
+        templates: []
       };
     }());
     var child3 = (function() {
       return {
-        isHTMLBars: true,
-        revision: "Ember@1.12.0",
-        blockParams: 0,
+        meta: {
+          "revision": "Ember@1.13.3",
+          "loc": {
+            "source": null,
+            "start": {
+              "line": 9,
+              "column": 2
+            },
+            "end": {
+              "line": 9,
+              "column": 60
+            }
+          },
+          "moduleName": "elosh-client/templates/components/art-modal.hbs"
+        },
+        arity: 0,
         cachedFragment: null,
         hasRendered: false,
-        build: function build(dom) {
+        buildFragment: function buildFragment(dom) {
           var el0 = dom.createDocumentFragment();
           var el1 = dom.createElement("p");
           dom.setAttribute(el1,"class","art-medium");
@@ -2194,40 +2250,39 @@ define('elosh-client/templates/components/art-modal', ['exports'], function (exp
           dom.appendChild(el0, el1);
           return el0;
         },
-        render: function render(context, env, contextualElement) {
-          var dom = env.dom;
-          var hooks = env.hooks, content = hooks.content;
-          dom.detectNamespace(contextualElement);
-          var fragment;
-          if (env.useFragmentCache && dom.canClone) {
-            if (this.cachedFragment === null) {
-              fragment = this.build(dom);
-              if (this.hasRendered) {
-                this.cachedFragment = fragment;
-              } else {
-                this.hasRendered = true;
-              }
-            }
-            if (this.cachedFragment) {
-              fragment = dom.cloneNode(this.cachedFragment, true);
-            }
-          } else {
-            fragment = this.build(dom);
-          }
-          var morph0 = dom.createMorphAt(dom.childAt(fragment, [0]),0,0);
-          content(env, morph0, context, "art.medium");
-          return fragment;
-        }
+        buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+          var morphs = new Array(1);
+          morphs[0] = dom.createMorphAt(dom.childAt(fragment, [0]),0,0);
+          return morphs;
+        },
+        statements: [
+          ["content","art.medium",["loc",[null,[9,42],[9,56]]]]
+        ],
+        locals: [],
+        templates: []
       };
     }());
     var child4 = (function() {
       return {
-        isHTMLBars: true,
-        revision: "Ember@1.12.0",
-        blockParams: 0,
+        meta: {
+          "revision": "Ember@1.13.3",
+          "loc": {
+            "source": null,
+            "start": {
+              "line": 10,
+              "column": 2
+            },
+            "end": {
+              "line": 10,
+              "column": 81
+            }
+          },
+          "moduleName": "elosh-client/templates/components/art-modal.hbs"
+        },
+        arity: 0,
         cachedFragment: null,
         hasRendered: false,
-        build: function build(dom) {
+        buildFragment: function buildFragment(dom) {
           var el0 = dom.createDocumentFragment();
           var el1 = dom.createElement("div");
           dom.setAttribute(el1,"class","art-description");
@@ -2236,40 +2291,39 @@ define('elosh-client/templates/components/art-modal', ['exports'], function (exp
           dom.appendChild(el0, el1);
           return el0;
         },
-        render: function render(context, env, contextualElement) {
-          var dom = env.dom;
-          var hooks = env.hooks, content = hooks.content;
-          dom.detectNamespace(contextualElement);
-          var fragment;
-          if (env.useFragmentCache && dom.canClone) {
-            if (this.cachedFragment === null) {
-              fragment = this.build(dom);
-              if (this.hasRendered) {
-                this.cachedFragment = fragment;
-              } else {
-                this.hasRendered = true;
-              }
-            }
-            if (this.cachedFragment) {
-              fragment = dom.cloneNode(this.cachedFragment, true);
-            }
-          } else {
-            fragment = this.build(dom);
-          }
-          var morph0 = dom.createUnsafeMorphAt(dom.childAt(fragment, [0]),0,0);
-          content(env, morph0, context, "art.description");
-          return fragment;
-        }
+        buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+          var morphs = new Array(1);
+          morphs[0] = dom.createUnsafeMorphAt(dom.childAt(fragment, [0]),0,0);
+          return morphs;
+        },
+        statements: [
+          ["content","art.description",["loc",[null,[10,54],[10,75]]]]
+        ],
+        locals: [],
+        templates: []
       };
     }());
     var child5 = (function() {
       return {
-        isHTMLBars: true,
-        revision: "Ember@1.12.0",
-        blockParams: 0,
+        meta: {
+          "revision": "Ember@1.13.3",
+          "loc": {
+            "source": null,
+            "start": {
+              "line": 12,
+              "column": 0
+            },
+            "end": {
+              "line": 16,
+              "column": 0
+            }
+          },
+          "moduleName": "elosh-client/templates/components/art-modal.hbs"
+        },
+        arity: 0,
         cachedFragment: null,
         hasRendered: false,
-        build: function build(dom) {
+        buildFragment: function buildFragment(dom) {
           var el0 = dom.createDocumentFragment();
           var el1 = dom.createElement("div");
           var el2 = dom.createTextNode("\n  ");
@@ -2284,39 +2338,39 @@ define('elosh-client/templates/components/art-modal', ['exports'], function (exp
           dom.appendChild(el0, el1);
           return el0;
         },
-        render: function render(context, env, contextualElement) {
-          var dom = env.dom;
-          var hooks = env.hooks, element = hooks.element;
-          dom.detectNamespace(contextualElement);
-          var fragment;
-          if (env.useFragmentCache && dom.canClone) {
-            if (this.cachedFragment === null) {
-              fragment = this.build(dom);
-              if (this.hasRendered) {
-                this.cachedFragment = fragment;
-              } else {
-                this.hasRendered = true;
-              }
-            }
-            if (this.cachedFragment) {
-              fragment = dom.cloneNode(this.cachedFragment, true);
-            }
-          } else {
-            fragment = this.build(dom);
-          }
+        buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
           var element0 = dom.childAt(fragment, [0]);
-          element(env, element0, context, "bind-attr", [], {"class": "imageLoaded:loaded :loading-overlay"});
-          return fragment;
-        }
+          var morphs = new Array(1);
+          morphs[0] = dom.createAttrMorph(element0, 'class');
+          return morphs;
+        },
+        statements: [
+          ["attribute","class",["concat",["loading-overlay ",["subexpr","if",[["get","imageLoaded",["loc",[null,[13,33],[13,44]]]],"loaded"],[],["loc",[null,[13,28],[13,55]]]]]]]
+        ],
+        locals: [],
+        templates: []
       };
     }());
     return {
-      isHTMLBars: true,
-      revision: "Ember@1.12.0",
-      blockParams: 0,
+      meta: {
+        "revision": "Ember@1.13.3",
+        "loc": {
+          "source": null,
+          "start": {
+            "line": 1,
+            "column": 0
+          },
+          "end": {
+            "line": 20,
+            "column": 0
+          }
+        },
+        "moduleName": "elosh-client/templates/components/art-modal.hbs"
+      },
+      arity: 0,
       cachedFragment: null,
       hasRendered: false,
-      build: function build(dom) {
+      buildFragment: function buildFragment(dom) {
         var el0 = dom.createDocumentFragment();
         var el1 = dom.createElement("div");
         dom.setAttribute(el1,"class","art-modal-image");
@@ -2378,47 +2432,36 @@ define('elosh-client/templates/components/art-modal', ['exports'], function (exp
         dom.appendChild(el0, el1);
         return el0;
       },
-      render: function render(context, env, contextualElement) {
-        var dom = env.dom;
-        var hooks = env.hooks, get = hooks.get, block = hooks.block, element = hooks.element;
-        dom.detectNamespace(contextualElement);
-        var fragment;
-        if (env.useFragmentCache && dom.canClone) {
-          if (this.cachedFragment === null) {
-            fragment = this.build(dom);
-            if (this.hasRendered) {
-              this.cachedFragment = fragment;
-            } else {
-              this.hasRendered = true;
-            }
-          }
-          if (this.cachedFragment) {
-            fragment = dom.cloneNode(this.cachedFragment, true);
-          }
-        } else {
-          fragment = this.build(dom);
-        }
+      buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
         var element2 = dom.childAt(fragment, [2]);
         var element3 = dom.childAt(fragment, [5]);
         var element4 = dom.childAt(fragment, [7]);
         var element5 = dom.childAt(fragment, [9]);
-        var morph0 = dom.createMorphAt(dom.childAt(fragment, [0]),1,1);
-        var morph1 = dom.createMorphAt(element2,1,1);
-        var morph2 = dom.createMorphAt(element2,3,3);
-        var morph3 = dom.createMorphAt(element2,5,5);
-        var morph4 = dom.createMorphAt(element2,7,7);
-        var morph5 = dom.createMorphAt(fragment,4,4,contextualElement);
-        block(env, morph0, context, "if", [get(env, context, "imageDataUrl")], {}, child0, null);
-        block(env, morph1, context, "if", [get(env, context, "art.title")], {}, child1, null);
-        block(env, morph2, context, "if", [get(env, context, "art.bookTitle")], {}, child2, null);
-        block(env, morph3, context, "if", [get(env, context, "art.medium")], {}, child3, null);
-        block(env, morph4, context, "if", [get(env, context, "art.description")], {}, child4, null);
-        block(env, morph5, context, "unless", [get(env, context, "hideOverlay")], {}, child5, null);
-        element(env, element3, context, "action", ["previousItem"], {});
-        element(env, element4, context, "action", ["nextItem"], {});
-        element(env, element5, context, "action", ["closeModal"], {});
-        return fragment;
-      }
+        var morphs = new Array(9);
+        morphs[0] = dom.createMorphAt(dom.childAt(fragment, [0]),1,1);
+        morphs[1] = dom.createMorphAt(element2,1,1);
+        morphs[2] = dom.createMorphAt(element2,3,3);
+        morphs[3] = dom.createMorphAt(element2,5,5);
+        morphs[4] = dom.createMorphAt(element2,7,7);
+        morphs[5] = dom.createMorphAt(fragment,4,4,contextualElement);
+        morphs[6] = dom.createElementMorph(element3);
+        morphs[7] = dom.createElementMorph(element4);
+        morphs[8] = dom.createElementMorph(element5);
+        return morphs;
+      },
+      statements: [
+        ["block","if",[["get","imageDataUrl",["loc",[null,[2,8],[2,20]]]]],[],0,null,["loc",[null,[2,2],[4,9]]]],
+        ["block","if",[["get","art.title",["loc",[null,[7,8],[7,17]]]]],[],1,null,["loc",[null,[7,2],[7,64]]]],
+        ["block","if",[["get","art.bookTitle",["loc",[null,[8,8],[8,21]]]]],[],2,null,["loc",[null,[8,2],[8,73]]]],
+        ["block","if",[["get","art.medium",["loc",[null,[9,8],[9,18]]]]],[],3,null,["loc",[null,[9,2],[9,67]]]],
+        ["block","if",[["get","art.description",["loc",[null,[10,8],[10,23]]]]],[],4,null,["loc",[null,[10,2],[10,88]]]],
+        ["block","unless",[["get","hideOverlay",["loc",[null,[12,10],[12,21]]]]],[],5,null,["loc",[null,[12,0],[16,11]]]],
+        ["element","action",["previousItem"],[],["loc",[null,[17,46],[17,71]]]],
+        ["element","action",["nextItem"],[],["loc",[null,[18,42],[18,63]]]],
+        ["element","action",["closeModal"],[],["loc",[null,[19,43],[19,66]]]]
+      ],
+      locals: [],
+      templates: [child0, child1, child2, child3, child4, child5]
     };
   }()));
 
@@ -2429,12 +2472,25 @@ define('elosh-client/templates/components/max-width', ['exports'], function (exp
 
   exports['default'] = Ember.HTMLBars.template((function() {
     return {
-      isHTMLBars: true,
-      revision: "Ember@1.12.0",
-      blockParams: 0,
+      meta: {
+        "revision": "Ember@1.13.3",
+        "loc": {
+          "source": null,
+          "start": {
+            "line": 1,
+            "column": 0
+          },
+          "end": {
+            "line": 2,
+            "column": 0
+          }
+        },
+        "moduleName": "elosh-client/templates/components/max-width.hbs"
+      },
+      arity: 0,
       cachedFragment: null,
       hasRendered: false,
-      build: function build(dom) {
+      buildFragment: function buildFragment(dom) {
         var el0 = dom.createDocumentFragment();
         var el1 = dom.createComment("");
         dom.appendChild(el0, el1);
@@ -2442,31 +2498,17 @@ define('elosh-client/templates/components/max-width', ['exports'], function (exp
         dom.appendChild(el0, el1);
         return el0;
       },
-      render: function render(context, env, contextualElement) {
-        var dom = env.dom;
-        var hooks = env.hooks, content = hooks.content;
-        dom.detectNamespace(contextualElement);
-        var fragment;
-        if (env.useFragmentCache && dom.canClone) {
-          if (this.cachedFragment === null) {
-            fragment = this.build(dom);
-            if (this.hasRendered) {
-              this.cachedFragment = fragment;
-            } else {
-              this.hasRendered = true;
-            }
-          }
-          if (this.cachedFragment) {
-            fragment = dom.cloneNode(this.cachedFragment, true);
-          }
-        } else {
-          fragment = this.build(dom);
-        }
-        var morph0 = dom.createMorphAt(fragment,0,0,contextualElement);
+      buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+        var morphs = new Array(1);
+        morphs[0] = dom.createMorphAt(fragment,0,0,contextualElement);
         dom.insertBoundary(fragment, 0);
-        content(env, morph0, context, "yield");
-        return fragment;
-      }
+        return morphs;
+      },
+      statements: [
+        ["content","yield",["loc",[null,[1,0],[1,9]]]]
+      ],
+      locals: [],
+      templates: []
     };
   }()));
 
@@ -2477,12 +2519,25 @@ define('elosh-client/templates/components/nav-section', ['exports'], function (e
 
   exports['default'] = Ember.HTMLBars.template((function() {
     return {
-      isHTMLBars: true,
-      revision: "Ember@1.12.0",
-      blockParams: 0,
+      meta: {
+        "revision": "Ember@1.13.3",
+        "loc": {
+          "source": null,
+          "start": {
+            "line": 1,
+            "column": 0
+          },
+          "end": {
+            "line": 2,
+            "column": 0
+          }
+        },
+        "moduleName": "elosh-client/templates/components/nav-section.hbs"
+      },
+      arity: 0,
       cachedFragment: null,
       hasRendered: false,
-      build: function build(dom) {
+      buildFragment: function buildFragment(dom) {
         var el0 = dom.createDocumentFragment();
         var el1 = dom.createComment("");
         dom.appendChild(el0, el1);
@@ -2490,31 +2545,17 @@ define('elosh-client/templates/components/nav-section', ['exports'], function (e
         dom.appendChild(el0, el1);
         return el0;
       },
-      render: function render(context, env, contextualElement) {
-        var dom = env.dom;
-        var hooks = env.hooks, content = hooks.content;
-        dom.detectNamespace(contextualElement);
-        var fragment;
-        if (env.useFragmentCache && dom.canClone) {
-          if (this.cachedFragment === null) {
-            fragment = this.build(dom);
-            if (this.hasRendered) {
-              this.cachedFragment = fragment;
-            } else {
-              this.hasRendered = true;
-            }
-          }
-          if (this.cachedFragment) {
-            fragment = dom.cloneNode(this.cachedFragment, true);
-          }
-        } else {
-          fragment = this.build(dom);
-        }
-        var morph0 = dom.createMorphAt(fragment,0,0,contextualElement);
+      buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+        var morphs = new Array(1);
+        morphs[0] = dom.createMorphAt(fragment,0,0,contextualElement);
         dom.insertBoundary(fragment, 0);
-        content(env, morph0, context, "yield");
-        return fragment;
-      }
+        return morphs;
+      },
+      statements: [
+        ["content","yield",["loc",[null,[1,0],[1,9]]]]
+      ],
+      locals: [],
+      templates: []
     };
   }()));
 
@@ -2525,12 +2566,25 @@ define('elosh-client/templates/loading', ['exports'], function (exports) {
 
   exports['default'] = Ember.HTMLBars.template((function() {
     return {
-      isHTMLBars: true,
-      revision: "Ember@1.12.0",
-      blockParams: 0,
+      meta: {
+        "revision": "Ember@1.13.3",
+        "loc": {
+          "source": null,
+          "start": {
+            "line": 1,
+            "column": 0
+          },
+          "end": {
+            "line": 6,
+            "column": 0
+          }
+        },
+        "moduleName": "elosh-client/templates/loading.hbs"
+      },
+      arity: 0,
       cachedFragment: null,
       hasRendered: false,
-      build: function build(dom) {
+      buildFragment: function buildFragment(dom) {
         var el0 = dom.createDocumentFragment();
         var el1 = dom.createElement("div");
         dom.setAttribute(el1,"id","loading-route");
@@ -2569,27 +2623,12 @@ define('elosh-client/templates/loading', ['exports'], function (exports) {
         dom.appendChild(el0, el1);
         return el0;
       },
-      render: function render(context, env, contextualElement) {
-        var dom = env.dom;
-        dom.detectNamespace(contextualElement);
-        var fragment;
-        if (env.useFragmentCache && dom.canClone) {
-          if (this.cachedFragment === null) {
-            fragment = this.build(dom);
-            if (this.hasRendered) {
-              this.cachedFragment = fragment;
-            } else {
-              this.hasRendered = true;
-            }
-          }
-          if (this.cachedFragment) {
-            fragment = dom.cloneNode(this.cachedFragment, true);
-          }
-        } else {
-          fragment = this.build(dom);
-        }
-        return fragment;
-      }
+      buildRenderNodes: function buildRenderNodes() { return []; },
+      statements: [
+
+      ],
+      locals: [],
+      templates: []
     };
   }()));
 
@@ -2601,12 +2640,25 @@ define('elosh-client/templates/partials/-artwork-thumbnails', ['exports'], funct
   exports['default'] = Ember.HTMLBars.template((function() {
     var child0 = (function() {
       return {
-        isHTMLBars: true,
-        revision: "Ember@1.12.0",
-        blockParams: 1,
+        meta: {
+          "revision": "Ember@1.13.3",
+          "loc": {
+            "source": null,
+            "start": {
+              "line": 2,
+              "column": 2
+            },
+            "end": {
+              "line": 9,
+              "column": 2
+            }
+          },
+          "moduleName": "elosh-client/templates/partials/-artwork-thumbnails.hbs"
+        },
+        arity: 1,
         cachedFragment: null,
         hasRendered: false,
-        build: function build(dom) {
+        buildFragment: function buildFragment(dom) {
           var el0 = dom.createDocumentFragment();
           var el1 = dom.createTextNode("    ");
           dom.appendChild(el0, el1);
@@ -2636,44 +2688,46 @@ define('elosh-client/templates/partials/-artwork-thumbnails', ['exports'], funct
           dom.appendChild(el0, el1);
           return el0;
         },
-        render: function render(context, env, contextualElement, blockArguments) {
-          var dom = env.dom;
-          var hooks = env.hooks, set = hooks.set, get = hooks.get, element = hooks.element, content = hooks.content;
-          dom.detectNamespace(contextualElement);
-          var fragment;
-          if (env.useFragmentCache && dom.canClone) {
-            if (this.cachedFragment === null) {
-              fragment = this.build(dom);
-              if (this.hasRendered) {
-                this.cachedFragment = fragment;
-              } else {
-                this.hasRendered = true;
-              }
-            }
-            if (this.cachedFragment) {
-              fragment = dom.cloneNode(this.cachedFragment, true);
-            }
-          } else {
-            fragment = this.build(dom);
-          }
+        buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
           var element0 = dom.childAt(fragment, [1]);
           var element1 = dom.childAt(element0, [1]);
-          var morph0 = dom.createMorphAt(dom.childAt(element0, [3, 1]),0,0);
-          set(env, context, "art", blockArguments[0]);
-          element(env, element0, context, "action", ["linkToArtModal", get(env, context, "art")], {});
-          element(env, element1, context, "bind-attr", [], {"src": "art.thumbnail.url", "alt": "art.title"});
-          content(env, morph0, context, "art.title");
-          return fragment;
-        }
+          var morphs = new Array(4);
+          morphs[0] = dom.createElementMorph(element0);
+          morphs[1] = dom.createAttrMorph(element1, 'src');
+          morphs[2] = dom.createAttrMorph(element1, 'alt');
+          morphs[3] = dom.createMorphAt(dom.childAt(element0, [3, 1]),0,0);
+          return morphs;
+        },
+        statements: [
+          ["element","action",["linkToArtModal",["get","art",["loc",[null,[3,34],[3,37]]]]],[],["loc",[null,[3,8],[3,39]]]],
+          ["attribute","src",["concat",[["get","art.thumbnail.url",["loc",[null,[4,18],[4,35]]]]]]],
+          ["attribute","alt",["concat",[["get","art.title",["loc",[null,[4,46],[4,55]]]]]]],
+          ["content","art.title",["loc",[null,[6,20],[6,33]]]]
+        ],
+        locals: ["art"],
+        templates: []
       };
     }());
     return {
-      isHTMLBars: true,
-      revision: "Ember@1.12.0",
-      blockParams: 0,
+      meta: {
+        "revision": "Ember@1.13.3",
+        "loc": {
+          "source": null,
+          "start": {
+            "line": 1,
+            "column": 0
+          },
+          "end": {
+            "line": 11,
+            "column": 0
+          }
+        },
+        "moduleName": "elosh-client/templates/partials/-artwork-thumbnails.hbs"
+      },
+      arity: 0,
       cachedFragment: null,
       hasRendered: false,
-      build: function build(dom) {
+      buildFragment: function buildFragment(dom) {
         var el0 = dom.createDocumentFragment();
         var el1 = dom.createElement("ul");
         dom.setAttribute(el1,"class","art-thumbs large-block-grid-4 medium-block-grid-3 small-block-grid-1");
@@ -2686,30 +2740,16 @@ define('elosh-client/templates/partials/-artwork-thumbnails', ['exports'], funct
         dom.appendChild(el0, el1);
         return el0;
       },
-      render: function render(context, env, contextualElement) {
-        var dom = env.dom;
-        var hooks = env.hooks, get = hooks.get, block = hooks.block;
-        dom.detectNamespace(contextualElement);
-        var fragment;
-        if (env.useFragmentCache && dom.canClone) {
-          if (this.cachedFragment === null) {
-            fragment = this.build(dom);
-            if (this.hasRendered) {
-              this.cachedFragment = fragment;
-            } else {
-              this.hasRendered = true;
-            }
-          }
-          if (this.cachedFragment) {
-            fragment = dom.cloneNode(this.cachedFragment, true);
-          }
-        } else {
-          fragment = this.build(dom);
-        }
-        var morph0 = dom.createMorphAt(dom.childAt(fragment, [0]),1,1);
-        block(env, morph0, context, "each", [get(env, context, "model.artwork")], {}, child0, null);
-        return fragment;
-      }
+      buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+        var morphs = new Array(1);
+        morphs[0] = dom.createMorphAt(dom.childAt(fragment, [0]),1,1);
+        return morphs;
+      },
+      statements: [
+        ["block","each",[["get","model.artwork",["loc",[null,[2,10],[2,23]]]]],[],0,null,["loc",[null,[2,2],[9,11]]]]
+      ],
+      locals: [],
+      templates: [child0]
     };
   }()));
 
@@ -2721,12 +2761,25 @@ define('elosh-client/templates/partials/-book-thumbnails', ['exports'], function
   exports['default'] = Ember.HTMLBars.template((function() {
     var child0 = (function() {
       return {
-        isHTMLBars: true,
-        revision: "Ember@1.12.0",
-        blockParams: 1,
+        meta: {
+          "revision": "Ember@1.13.3",
+          "loc": {
+            "source": null,
+            "start": {
+              "line": 2,
+              "column": 2
+            },
+            "end": {
+              "line": 8,
+              "column": 2
+            }
+          },
+          "moduleName": "elosh-client/templates/partials/-book-thumbnails.hbs"
+        },
+        arity: 1,
         cachedFragment: null,
         hasRendered: false,
-        build: function build(dom) {
+        buildFragment: function buildFragment(dom) {
           var el0 = dom.createDocumentFragment();
           var el1 = dom.createTextNode("    ");
           dom.appendChild(el0, el1);
@@ -2749,42 +2802,44 @@ define('elosh-client/templates/partials/-book-thumbnails', ['exports'], function
           dom.appendChild(el0, el1);
           return el0;
         },
-        render: function render(context, env, contextualElement, blockArguments) {
-          var dom = env.dom;
-          var hooks = env.hooks, set = hooks.set, get = hooks.get, element = hooks.element;
-          dom.detectNamespace(contextualElement);
-          var fragment;
-          if (env.useFragmentCache && dom.canClone) {
-            if (this.cachedFragment === null) {
-              fragment = this.build(dom);
-              if (this.hasRendered) {
-                this.cachedFragment = fragment;
-              } else {
-                this.hasRendered = true;
-              }
-            }
-            if (this.cachedFragment) {
-              fragment = dom.cloneNode(this.cachedFragment, true);
-            }
-          } else {
-            fragment = this.build(dom);
-          }
+        buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
           var element0 = dom.childAt(fragment, [1, 1]);
           var element1 = dom.childAt(element0, [1]);
-          set(env, context, "bookPage", blockArguments[0]);
-          element(env, element0, context, "action", ["linkToArtModal", get(env, context, "bookPage")], {});
-          element(env, element1, context, "bind-attr", [], {"src": "bookPage.thumbnail.url", "alt": "bookPage.title"});
-          return fragment;
-        }
+          var morphs = new Array(3);
+          morphs[0] = dom.createElementMorph(element0);
+          morphs[1] = dom.createAttrMorph(element1, 'src');
+          morphs[2] = dom.createAttrMorph(element1, 'alt');
+          return morphs;
+        },
+        statements: [
+          ["element","action",["linkToArtModal",["get","bookPage",["loc",[null,[4,44],[4,52]]]]],[],["loc",[null,[4,18],[4,54]]]],
+          ["attribute","src",["concat",[["get","bookPage.thumbnail.url",["loc",[null,[5,20],[5,42]]]]]]],
+          ["attribute","alt",["concat",[["get","bookPage.title",["loc",[null,[5,53],[5,67]]]]]]]
+        ],
+        locals: ["bookPage"],
+        templates: []
       };
     }());
     return {
-      isHTMLBars: true,
-      revision: "Ember@1.12.0",
-      blockParams: 0,
+      meta: {
+        "revision": "Ember@1.13.3",
+        "loc": {
+          "source": null,
+          "start": {
+            "line": 1,
+            "column": 0
+          },
+          "end": {
+            "line": 10,
+            "column": 0
+          }
+        },
+        "moduleName": "elosh-client/templates/partials/-book-thumbnails.hbs"
+      },
+      arity: 0,
       cachedFragment: null,
       hasRendered: false,
-      build: function build(dom) {
+      buildFragment: function buildFragment(dom) {
         var el0 = dom.createDocumentFragment();
         var el1 = dom.createElement("ul");
         dom.setAttribute(el1,"class","large-block-grid-2 small-block-grid-1");
@@ -2797,30 +2852,16 @@ define('elosh-client/templates/partials/-book-thumbnails', ['exports'], function
         dom.appendChild(el0, el1);
         return el0;
       },
-      render: function render(context, env, contextualElement) {
-        var dom = env.dom;
-        var hooks = env.hooks, get = hooks.get, block = hooks.block;
-        dom.detectNamespace(contextualElement);
-        var fragment;
-        if (env.useFragmentCache && dom.canClone) {
-          if (this.cachedFragment === null) {
-            fragment = this.build(dom);
-            if (this.hasRendered) {
-              this.cachedFragment = fragment;
-            } else {
-              this.hasRendered = true;
-            }
-          }
-          if (this.cachedFragment) {
-            fragment = dom.cloneNode(this.cachedFragment, true);
-          }
-        } else {
-          fragment = this.build(dom);
-        }
-        var morph0 = dom.createMorphAt(dom.childAt(fragment, [0]),1,1);
-        block(env, morph0, context, "each", [get(env, context, "model.bookPages")], {}, child0, null);
-        return fragment;
-      }
+      buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+        var morphs = new Array(1);
+        morphs[0] = dom.createMorphAt(dom.childAt(fragment, [0]),1,1);
+        return morphs;
+      },
+      statements: [
+        ["block","each",[["get","model.bookPages",["loc",[null,[2,10],[2,25]]]]],[],0,null,["loc",[null,[2,2],[8,11]]]]
+      ],
+      locals: [],
+      templates: [child0]
     };
   }()));
 
@@ -2833,89 +2874,99 @@ define('elosh-client/templates/partials/-main-navigation', ['exports'], function
     var child0 = (function() {
       var child0 = (function() {
         return {
-          isHTMLBars: true,
-          revision: "Ember@1.12.0",
-          blockParams: 0,
+          meta: {
+            "revision": "Ember@1.13.3",
+            "loc": {
+              "source": null,
+              "start": {
+                "line": 5,
+                "column": 6
+              },
+              "end": {
+                "line": 5,
+                "column": 68
+              }
+            },
+            "moduleName": "elosh-client/templates/partials/-main-navigation.hbs"
+          },
+          arity: 0,
           cachedFragment: null,
           hasRendered: false,
-          build: function build(dom) {
+          buildFragment: function buildFragment(dom) {
             var el0 = dom.createDocumentFragment();
             var el1 = dom.createTextNode("Artwork");
             dom.appendChild(el0, el1);
             return el0;
           },
-          render: function render(context, env, contextualElement) {
-            var dom = env.dom;
-            dom.detectNamespace(contextualElement);
-            var fragment;
-            if (env.useFragmentCache && dom.canClone) {
-              if (this.cachedFragment === null) {
-                fragment = this.build(dom);
-                if (this.hasRendered) {
-                  this.cachedFragment = fragment;
-                } else {
-                  this.hasRendered = true;
-                }
-              }
-              if (this.cachedFragment) {
-                fragment = dom.cloneNode(this.cachedFragment, true);
-              }
-            } else {
-              fragment = this.build(dom);
-            }
-            return fragment;
-          }
+          buildRenderNodes: function buildRenderNodes() { return []; },
+          statements: [
+
+          ],
+          locals: [],
+          templates: []
         };
       }());
       var child1 = (function() {
         var child0 = (function() {
           return {
-            isHTMLBars: true,
-            revision: "Ember@1.12.0",
-            blockParams: 0,
+            meta: {
+              "revision": "Ember@1.13.3",
+              "loc": {
+                "source": null,
+                "start": {
+                  "line": 8,
+                  "column": 10
+                },
+                "end": {
+                  "line": 8,
+                  "column": 86
+                }
+              },
+              "moduleName": "elosh-client/templates/partials/-main-navigation.hbs"
+            },
+            arity: 0,
             cachedFragment: null,
             hasRendered: false,
-            build: function build(dom) {
+            buildFragment: function buildFragment(dom) {
               var el0 = dom.createDocumentFragment();
               var el1 = dom.createComment("");
               dom.appendChild(el0, el1);
               return el0;
             },
-            render: function render(context, env, contextualElement) {
-              var dom = env.dom;
-              var hooks = env.hooks, content = hooks.content;
-              dom.detectNamespace(contextualElement);
-              var fragment;
-              if (env.useFragmentCache && dom.canClone) {
-                if (this.cachedFragment === null) {
-                  fragment = this.build(dom);
-                  if (this.hasRendered) {
-                    this.cachedFragment = fragment;
-                  } else {
-                    this.hasRendered = true;
-                  }
-                }
-                if (this.cachedFragment) {
-                  fragment = dom.cloneNode(this.cachedFragment, true);
-                }
-              } else {
-                fragment = this.build(dom);
-              }
-              var morph0 = dom.createMorphAt(fragment,0,0,contextualElement);
-              dom.insertBoundary(fragment, null);
+            buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+              var morphs = new Array(1);
+              morphs[0] = dom.createMorphAt(fragment,0,0,contextualElement);
               dom.insertBoundary(fragment, 0);
-              content(env, morph0, context, "artworkCategory.name");
-              return fragment;
-            }
+              dom.insertBoundary(fragment, null);
+              return morphs;
+            },
+            statements: [
+              ["content","artworkCategory.name",["loc",[null,[8,62],[8,86]]]]
+            ],
+            locals: [],
+            templates: []
           };
         }());
         return {
-          isHTMLBars: true,
-          revision: "Ember@1.12.0",
-          blockParams: 1,
+          meta: {
+            "revision": "Ember@1.13.3",
+            "loc": {
+              "source": null,
+              "start": {
+                "line": 7,
+                "column": 8
+              },
+              "end": {
+                "line": 9,
+                "column": 8
+              }
+            },
+            "moduleName": "elosh-client/templates/partials/-main-navigation.hbs"
+          },
+          arity: 1,
           cachedFragment: null,
           hasRendered: false,
-          build: function build(dom) {
+          buildFragment: function buildFragment(dom) {
             var el0 = dom.createDocumentFragment();
             var el1 = dom.createTextNode("          ");
             dom.appendChild(el0, el1);
@@ -2925,40 +2976,38 @@ define('elosh-client/templates/partials/-main-navigation', ['exports'], function
             dom.appendChild(el0, el1);
             return el0;
           },
-          render: function render(context, env, contextualElement, blockArguments) {
-            var dom = env.dom;
-            var hooks = env.hooks, set = hooks.set, get = hooks.get, block = hooks.block;
-            dom.detectNamespace(contextualElement);
-            var fragment;
-            if (env.useFragmentCache && dom.canClone) {
-              if (this.cachedFragment === null) {
-                fragment = this.build(dom);
-                if (this.hasRendered) {
-                  this.cachedFragment = fragment;
-                } else {
-                  this.hasRendered = true;
-                }
-              }
-              if (this.cachedFragment) {
-                fragment = dom.cloneNode(this.cachedFragment, true);
-              }
-            } else {
-              fragment = this.build(dom);
-            }
-            var morph0 = dom.createMorphAt(fragment,1,1,contextualElement);
-            set(env, context, "artworkCategory", blockArguments[0]);
-            block(env, morph0, context, "link-to", ["artwork.category", get(env, context, "artworkCategory.slug")], {}, child0, null);
-            return fragment;
-          }
+          buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+            var morphs = new Array(1);
+            morphs[0] = dom.createMorphAt(fragment,1,1,contextualElement);
+            return morphs;
+          },
+          statements: [
+            ["block","link-to",["artwork.category",["get","artworkCategory.slug",["loc",[null,[8,40],[8,60]]]]],[],0,null,["loc",[null,[8,10],[8,98]]]]
+          ],
+          locals: ["artworkCategory"],
+          templates: [child0]
         };
       }());
       return {
-        isHTMLBars: true,
-        revision: "Ember@1.12.0",
-        blockParams: 0,
+        meta: {
+          "revision": "Ember@1.13.3",
+          "loc": {
+            "source": null,
+            "start": {
+              "line": 4,
+              "column": 4
+            },
+            "end": {
+              "line": 11,
+              "column": 4
+            }
+          },
+          "moduleName": "elosh-client/templates/partials/-main-navigation.hbs"
+        },
+        arity: 0,
         cachedFragment: null,
         hasRendered: false,
-        build: function build(dom) {
+        buildFragment: function buildFragment(dom) {
           var el0 = dom.createDocumentFragment();
           var el1 = dom.createTextNode("      ");
           dom.appendChild(el0, el1);
@@ -2979,120 +3028,116 @@ define('elosh-client/templates/partials/-main-navigation', ['exports'], function
           dom.appendChild(el0, el1);
           return el0;
         },
-        render: function render(context, env, contextualElement) {
-          var dom = env.dom;
-          var hooks = env.hooks, block = hooks.block, get = hooks.get;
-          dom.detectNamespace(contextualElement);
-          var fragment;
-          if (env.useFragmentCache && dom.canClone) {
-            if (this.cachedFragment === null) {
-              fragment = this.build(dom);
-              if (this.hasRendered) {
-                this.cachedFragment = fragment;
-              } else {
-                this.hasRendered = true;
-              }
-            }
-            if (this.cachedFragment) {
-              fragment = dom.cloneNode(this.cachedFragment, true);
-            }
-          } else {
-            fragment = this.build(dom);
-          }
-          var morph0 = dom.createMorphAt(fragment,1,1,contextualElement);
-          var morph1 = dom.createMorphAt(dom.childAt(fragment, [3]),1,1);
-          block(env, morph0, context, "link-to", ["artwork"], {"classNames": "parent-link artwork"}, child0, null);
-          block(env, morph1, context, "each", [get(env, context, "model.artworkCategories")], {}, child1, null);
-          return fragment;
-        }
+        buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+          var morphs = new Array(2);
+          morphs[0] = dom.createMorphAt(fragment,1,1,contextualElement);
+          morphs[1] = dom.createMorphAt(dom.childAt(fragment, [3]),1,1);
+          return morphs;
+        },
+        statements: [
+          ["block","link-to",["artwork"],["classNames","parent-link artwork"],0,null,["loc",[null,[5,6],[5,80]]]],
+          ["block","each",[["get","model.artworkCategories",["loc",[null,[7,16],[7,39]]]]],[],1,null,["loc",[null,[7,8],[9,17]]]]
+        ],
+        locals: [],
+        templates: [child0, child1]
       };
     }());
     var child1 = (function() {
       var child0 = (function() {
         return {
-          isHTMLBars: true,
-          revision: "Ember@1.12.0",
-          blockParams: 0,
+          meta: {
+            "revision": "Ember@1.13.3",
+            "loc": {
+              "source": null,
+              "start": {
+                "line": 15,
+                "column": 6
+              },
+              "end": {
+                "line": 15,
+                "column": 62
+              }
+            },
+            "moduleName": "elosh-client/templates/partials/-main-navigation.hbs"
+          },
+          arity: 0,
           cachedFragment: null,
           hasRendered: false,
-          build: function build(dom) {
+          buildFragment: function buildFragment(dom) {
             var el0 = dom.createDocumentFragment();
             var el1 = dom.createTextNode("Books");
             dom.appendChild(el0, el1);
             return el0;
           },
-          render: function render(context, env, contextualElement) {
-            var dom = env.dom;
-            dom.detectNamespace(contextualElement);
-            var fragment;
-            if (env.useFragmentCache && dom.canClone) {
-              if (this.cachedFragment === null) {
-                fragment = this.build(dom);
-                if (this.hasRendered) {
-                  this.cachedFragment = fragment;
-                } else {
-                  this.hasRendered = true;
-                }
-              }
-              if (this.cachedFragment) {
-                fragment = dom.cloneNode(this.cachedFragment, true);
-              }
-            } else {
-              fragment = this.build(dom);
-            }
-            return fragment;
-          }
+          buildRenderNodes: function buildRenderNodes() { return []; },
+          statements: [
+
+          ],
+          locals: [],
+          templates: []
         };
       }());
       var child1 = (function() {
         var child0 = (function() {
           return {
-            isHTMLBars: true,
-            revision: "Ember@1.12.0",
-            blockParams: 0,
+            meta: {
+              "revision": "Ember@1.13.3",
+              "loc": {
+                "source": null,
+                "start": {
+                  "line": 18,
+                  "column": 10
+                },
+                "end": {
+                  "line": 18,
+                  "column": 59
+                }
+              },
+              "moduleName": "elosh-client/templates/partials/-main-navigation.hbs"
+            },
+            arity: 0,
             cachedFragment: null,
             hasRendered: false,
-            build: function build(dom) {
+            buildFragment: function buildFragment(dom) {
               var el0 = dom.createDocumentFragment();
               var el1 = dom.createComment("");
               dom.appendChild(el0, el1);
               return el0;
             },
-            render: function render(context, env, contextualElement) {
-              var dom = env.dom;
-              var hooks = env.hooks, content = hooks.content;
-              dom.detectNamespace(contextualElement);
-              var fragment;
-              if (env.useFragmentCache && dom.canClone) {
-                if (this.cachedFragment === null) {
-                  fragment = this.build(dom);
-                  if (this.hasRendered) {
-                    this.cachedFragment = fragment;
-                  } else {
-                    this.hasRendered = true;
-                  }
-                }
-                if (this.cachedFragment) {
-                  fragment = dom.cloneNode(this.cachedFragment, true);
-                }
-              } else {
-                fragment = this.build(dom);
-              }
-              var morph0 = dom.createMorphAt(fragment,0,0,contextualElement);
-              dom.insertBoundary(fragment, null);
+            buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+              var morphs = new Array(1);
+              morphs[0] = dom.createMorphAt(fragment,0,0,contextualElement);
               dom.insertBoundary(fragment, 0);
-              content(env, morph0, context, "book.title");
-              return fragment;
-            }
+              dom.insertBoundary(fragment, null);
+              return morphs;
+            },
+            statements: [
+              ["content","book.title",["loc",[null,[18,45],[18,59]]]]
+            ],
+            locals: [],
+            templates: []
           };
         }());
         return {
-          isHTMLBars: true,
-          revision: "Ember@1.12.0",
-          blockParams: 1,
+          meta: {
+            "revision": "Ember@1.13.3",
+            "loc": {
+              "source": null,
+              "start": {
+                "line": 17,
+                "column": 8
+              },
+              "end": {
+                "line": 19,
+                "column": 8
+              }
+            },
+            "moduleName": "elosh-client/templates/partials/-main-navigation.hbs"
+          },
+          arity: 1,
           cachedFragment: null,
           hasRendered: false,
-          build: function build(dom) {
+          buildFragment: function buildFragment(dom) {
             var el0 = dom.createDocumentFragment();
             var el1 = dom.createTextNode("          ");
             dom.appendChild(el0, el1);
@@ -3102,40 +3147,38 @@ define('elosh-client/templates/partials/-main-navigation', ['exports'], function
             dom.appendChild(el0, el1);
             return el0;
           },
-          render: function render(context, env, contextualElement, blockArguments) {
-            var dom = env.dom;
-            var hooks = env.hooks, set = hooks.set, get = hooks.get, block = hooks.block;
-            dom.detectNamespace(contextualElement);
-            var fragment;
-            if (env.useFragmentCache && dom.canClone) {
-              if (this.cachedFragment === null) {
-                fragment = this.build(dom);
-                if (this.hasRendered) {
-                  this.cachedFragment = fragment;
-                } else {
-                  this.hasRendered = true;
-                }
-              }
-              if (this.cachedFragment) {
-                fragment = dom.cloneNode(this.cachedFragment, true);
-              }
-            } else {
-              fragment = this.build(dom);
-            }
-            var morph0 = dom.createMorphAt(fragment,1,1,contextualElement);
-            set(env, context, "book", blockArguments[0]);
-            block(env, morph0, context, "link-to", ["books.show", get(env, context, "book.slug")], {}, child0, null);
-            return fragment;
-          }
+          buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+            var morphs = new Array(1);
+            morphs[0] = dom.createMorphAt(fragment,1,1,contextualElement);
+            return morphs;
+          },
+          statements: [
+            ["block","link-to",["books.show",["get","book.slug",["loc",[null,[18,34],[18,43]]]]],[],0,null,["loc",[null,[18,10],[18,71]]]]
+          ],
+          locals: ["book"],
+          templates: [child0]
         };
       }());
       return {
-        isHTMLBars: true,
-        revision: "Ember@1.12.0",
-        blockParams: 0,
+        meta: {
+          "revision": "Ember@1.13.3",
+          "loc": {
+            "source": null,
+            "start": {
+              "line": 14,
+              "column": 4
+            },
+            "end": {
+              "line": 21,
+              "column": 4
+            }
+          },
+          "moduleName": "elosh-client/templates/partials/-main-navigation.hbs"
+        },
+        arity: 0,
         cachedFragment: null,
         hasRendered: false,
-        build: function build(dom) {
+        buildFragment: function buildFragment(dom) {
           var el0 = dom.createDocumentFragment();
           var el1 = dom.createTextNode("      ");
           dom.appendChild(el0, el1);
@@ -3156,43 +3199,42 @@ define('elosh-client/templates/partials/-main-navigation', ['exports'], function
           dom.appendChild(el0, el1);
           return el0;
         },
-        render: function render(context, env, contextualElement) {
-          var dom = env.dom;
-          var hooks = env.hooks, block = hooks.block, get = hooks.get;
-          dom.detectNamespace(contextualElement);
-          var fragment;
-          if (env.useFragmentCache && dom.canClone) {
-            if (this.cachedFragment === null) {
-              fragment = this.build(dom);
-              if (this.hasRendered) {
-                this.cachedFragment = fragment;
-              } else {
-                this.hasRendered = true;
-              }
-            }
-            if (this.cachedFragment) {
-              fragment = dom.cloneNode(this.cachedFragment, true);
-            }
-          } else {
-            fragment = this.build(dom);
-          }
-          var morph0 = dom.createMorphAt(fragment,1,1,contextualElement);
-          var morph1 = dom.createMorphAt(dom.childAt(fragment, [3]),1,1);
-          block(env, morph0, context, "link-to", ["books"], {"classNames": "parent-link books"}, child0, null);
-          block(env, morph1, context, "each", [get(env, context, "model.books")], {}, child1, null);
-          return fragment;
-        }
+        buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+          var morphs = new Array(2);
+          morphs[0] = dom.createMorphAt(fragment,1,1,contextualElement);
+          morphs[1] = dom.createMorphAt(dom.childAt(fragment, [3]),1,1);
+          return morphs;
+        },
+        statements: [
+          ["block","link-to",["books"],["classNames","parent-link books"],0,null,["loc",[null,[15,6],[15,74]]]],
+          ["block","each",[["get","model.books",["loc",[null,[17,16],[17,27]]]]],[],1,null,["loc",[null,[17,8],[19,17]]]]
+        ],
+        locals: [],
+        templates: [child0, child1]
       };
     }());
     var child2 = (function() {
       var child0 = (function() {
         return {
-          isHTMLBars: true,
-          revision: "Ember@1.12.0",
-          blockParams: 0,
+          meta: {
+            "revision": "Ember@1.13.3",
+            "loc": {
+              "source": null,
+              "start": {
+                "line": 28,
+                "column": 8
+              },
+              "end": {
+                "line": 30,
+                "column": 8
+              }
+            },
+            "moduleName": "elosh-client/templates/partials/-main-navigation.hbs"
+          },
+          arity: 0,
           cachedFragment: null,
           hasRendered: false,
-          build: function build(dom) {
+          buildFragment: function buildFragment(dom) {
             var el0 = dom.createDocumentFragment();
             var el1 = dom.createTextNode("          ");
             dom.appendChild(el0, el1);
@@ -3208,41 +3250,41 @@ define('elosh-client/templates/partials/-main-navigation', ['exports'], function
             dom.appendChild(el0, el1);
             return el0;
           },
-          render: function render(context, env, contextualElement) {
-            var dom = env.dom;
-            var hooks = env.hooks, element = hooks.element, content = hooks.content;
-            dom.detectNamespace(contextualElement);
-            var fragment;
-            if (env.useFragmentCache && dom.canClone) {
-              if (this.cachedFragment === null) {
-                fragment = this.build(dom);
-                if (this.hasRendered) {
-                  this.cachedFragment = fragment;
-                } else {
-                  this.hasRendered = true;
-                }
-              }
-              if (this.cachedFragment) {
-                fragment = dom.cloneNode(this.cachedFragment, true);
-              }
-            } else {
-              fragment = this.build(dom);
-            }
+          buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
             var element0 = dom.childAt(fragment, [1, 0]);
-            var morph0 = dom.createMorphAt(element0,0,0);
-            element(env, element0, context, "bind-attr", [], {"href": "model.contact.mailTo"});
-            content(env, morph0, context, "model.contact.email");
-            return fragment;
-          }
+            var morphs = new Array(2);
+            morphs[0] = dom.createAttrMorph(element0, 'href');
+            morphs[1] = dom.createMorphAt(element0,0,0);
+            return morphs;
+          },
+          statements: [
+            ["attribute","href",["concat",[["get","model.contact.mailTo",["loc",[null,[29,24],[29,44]]]]]]],
+            ["content","model.contact.email",["loc",[null,[29,88],[29,111]]]]
+          ],
+          locals: [],
+          templates: []
         };
       }());
       return {
-        isHTMLBars: true,
-        revision: "Ember@1.12.0",
-        blockParams: 0,
+        meta: {
+          "revision": "Ember@1.13.3",
+          "loc": {
+            "source": null,
+            "start": {
+              "line": 24,
+              "column": 4
+            },
+            "end": {
+              "line": 32,
+              "column": 4
+            }
+          },
+          "moduleName": "elosh-client/templates/partials/-main-navigation.hbs"
+        },
+        arity: 0,
         cachedFragment: null,
         hasRendered: false,
-        build: function build(dom) {
+        buildFragment: function buildFragment(dom) {
           var el0 = dom.createDocumentFragment();
           var el1 = dom.createTextNode("      ");
           dom.appendChild(el0, el1);
@@ -3267,44 +3309,43 @@ define('elosh-client/templates/partials/-main-navigation', ['exports'], function
           dom.appendChild(el0, el1);
           return el0;
         },
-        render: function render(context, env, contextualElement) {
-          var dom = env.dom;
-          var hooks = env.hooks, inline = hooks.inline, content = hooks.content, get = hooks.get, block = hooks.block;
-          dom.detectNamespace(contextualElement);
-          var fragment;
-          if (env.useFragmentCache && dom.canClone) {
-            if (this.cachedFragment === null) {
-              fragment = this.build(dom);
-              if (this.hasRendered) {
-                this.cachedFragment = fragment;
-              } else {
-                this.hasRendered = true;
-              }
-            }
-            if (this.cachedFragment) {
-              fragment = dom.cloneNode(this.cachedFragment, true);
-            }
-          } else {
-            fragment = this.build(dom);
-          }
+        buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
           var element1 = dom.childAt(fragment, [3]);
-          var morph0 = dom.createMorphAt(fragment,1,1,contextualElement);
-          var morph1 = dom.createUnsafeMorphAt(element1,1,1);
-          var morph2 = dom.createMorphAt(element1,3,3);
-          inline(env, morph0, context, "link-to", ["About", "about"], {"classNames": "parent-link about"});
-          content(env, morph1, context, "model.contact.contactNarrative");
-          block(env, morph2, context, "if", [get(env, context, "model.contact.email")], {}, child0, null);
-          return fragment;
-        }
+          var morphs = new Array(3);
+          morphs[0] = dom.createMorphAt(fragment,1,1,contextualElement);
+          morphs[1] = dom.createUnsafeMorphAt(element1,1,1);
+          morphs[2] = dom.createMorphAt(element1,3,3);
+          return morphs;
+        },
+        statements: [
+          ["inline","link-to",["About","about"],["classNames","parent-link about"],["loc",[null,[25,6],[25,64]]]],
+          ["content","model.contact.contactNarrative",["loc",[null,[27,8],[27,44]]]],
+          ["block","if",[["get","model.contact.email",["loc",[null,[28,14],[28,33]]]]],[],0,null,["loc",[null,[28,8],[30,15]]]]
+        ],
+        locals: [],
+        templates: [child0]
       };
     }());
     return {
-      isHTMLBars: true,
-      revision: "Ember@1.12.0",
-      blockParams: 0,
+      meta: {
+        "revision": "Ember@1.13.3",
+        "loc": {
+          "source": null,
+          "start": {
+            "line": 1,
+            "column": 0
+          },
+          "end": {
+            "line": 42,
+            "column": 0
+          }
+        },
+        "moduleName": "elosh-client/templates/partials/-main-navigation.hbs"
+      },
+      arity: 0,
       cachedFragment: null,
       hasRendered: false,
-      build: function build(dom) {
+      buildFragment: function buildFragment(dom) {
         var el0 = dom.createDocumentFragment();
         var el1 = dom.createElement("div");
         dom.setAttribute(el1,"class","nav");
@@ -3369,37 +3410,24 @@ define('elosh-client/templates/partials/-main-navigation', ['exports'], function
         dom.appendChild(el0, el1);
         return el0;
       },
-      render: function render(context, env, contextualElement) {
-        var dom = env.dom;
-        var hooks = env.hooks, get = hooks.get, block = hooks.block, element = hooks.element;
-        dom.detectNamespace(contextualElement);
-        var fragment;
-        if (env.useFragmentCache && dom.canClone) {
-          if (this.cachedFragment === null) {
-            fragment = this.build(dom);
-            if (this.hasRendered) {
-              this.cachedFragment = fragment;
-            } else {
-              this.hasRendered = true;
-            }
-          }
-          if (this.cachedFragment) {
-            fragment = dom.cloneNode(this.cachedFragment, true);
-          }
-        } else {
-          fragment = this.build(dom);
-        }
+      buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
         var element2 = dom.childAt(fragment, [0, 1]);
         var element3 = dom.childAt(element2, [13, 1]);
-        var morph0 = dom.createMorphAt(element2,1,1);
-        var morph1 = dom.createMorphAt(element2,5,5);
-        var morph2 = dom.createMorphAt(element2,9,9);
-        block(env, morph0, context, "nav-section", [], {"currentPath": get(env, context, "currentPath"), "path": "artwork"}, child0, null);
-        block(env, morph1, context, "nav-section", [], {"currentPath": get(env, context, "currentPath"), "path": "books"}, child1, null);
-        block(env, morph2, context, "nav-section", [], {"currentPath": get(env, context, "currentPath"), "path": "about"}, child2, null);
-        element(env, element3, context, "bind-attr", [], {"href": "model.contact.storeLink"});
-        return fragment;
-      }
+        var morphs = new Array(4);
+        morphs[0] = dom.createMorphAt(element2,1,1);
+        morphs[1] = dom.createMorphAt(element2,5,5);
+        morphs[2] = dom.createMorphAt(element2,9,9);
+        morphs[3] = dom.createAttrMorph(element3, 'href');
+        return morphs;
+      },
+      statements: [
+        ["block","nav-section",[],["currentPath",["subexpr","@mut",[["get","currentPath",["loc",[null,[4,31],[4,42]]]]],[],[]],"path","artwork"],0,null,["loc",[null,[4,4],[11,20]]]],
+        ["block","nav-section",[],["currentPath",["subexpr","@mut",[["get","currentPath",["loc",[null,[14,31],[14,42]]]]],[],[]],"path","books"],1,null,["loc",[null,[14,4],[21,20]]]],
+        ["block","nav-section",[],["currentPath",["subexpr","@mut",[["get","currentPath",["loc",[null,[24,31],[24,42]]]]],[],[]],"path","about"],2,null,["loc",[null,[24,4],[32,20]]]],
+        ["attribute","href",["concat",[["get","model.contact.storeLink",["loc",[null,[36,17],[36,40]]]]]]]
+      ],
+      locals: [],
+      templates: [child0, child1, child2]
     };
   }()));
 
@@ -3508,7 +3536,7 @@ define('elosh-client/tests/helpers/resolver.jshint', function () {
   });
 
 });
-define('elosh-client/tests/helpers/start-app', ['exports', 'ember', 'elosh-client/app', 'elosh-client/router', 'elosh-client/config/environment'], function (exports, Ember, Application, Router, config) {
+define('elosh-client/tests/helpers/start-app', ['exports', 'ember', 'elosh-client/app', 'elosh-client/config/environment'], function (exports, Ember, Application, config) {
 
   'use strict';
 
@@ -3873,23 +3901,6 @@ define('elosh-client/tests/unit/initializers/preload-artwork-test.jshint', funct
   });
 
 });
-define('elosh-client/tests/views/application.jshint', function () {
-
-  'use strict';
-
-  module('JSHint - views');
-  test('views/application.js should pass jshint', function() { 
-    ok(true, 'views/application.js should pass jshint.'); 
-  });
-
-});
-define('elosh-client/views/application', ['exports', 'ember'], function (exports, Ember) {
-
-	'use strict';
-
-	exports['default'] = Ember['default'].View.extend({});
-
-});
 /* jshint ignore:start */
 
 /* jshint ignore:end */
@@ -3897,13 +3908,28 @@ define('elosh-client/views/application', ['exports', 'ember'], function (exports
 /* jshint ignore:start */
 
 define('elosh-client/config/environment', ['ember'], function(Ember) {
-  return { 'default': {"modulePrefix":"elosh-client","environment":"development","baseURL":"/","locationType":"auto","EmberENV":{"FEATURES":{}},"APP":{"name":"elosh-client","version":"0.0.0.cb00ad41"},"contentSecurityPolicyHeader":"Content-Security-Policy-Report-Only","contentSecurityPolicy":{"default-src":"'none'","script-src":"'self' 'unsafe-eval'","font-src":"'self'","connect-src":"'self'","img-src":"'self'","style-src":"'self'","media-src":"'self'"},"exportApplicationGlobal":true}};
+  var prefix = 'elosh-client';
+/* jshint ignore:start */
+
+try {
+  var metaName = prefix + '/config/environment';
+  var rawConfig = Ember['default'].$('meta[name="' + metaName + '"]').attr('content');
+  var config = JSON.parse(unescape(rawConfig));
+
+  return { 'default': config };
+}
+catch(err) {
+  throw new Error('Could not read config from meta tag with name "' + metaName + '".');
+}
+
+/* jshint ignore:end */
+
 });
 
 if (runningTests) {
   require("elosh-client/tests/test-helper");
 } else {
-  require("elosh-client/app")["default"].create({"name":"elosh-client","version":"0.0.0.cb00ad41"});
+  require("elosh-client/app")["default"].create({"name":"elosh-client","version":"0.0.0+333a5e30"});
 }
 
 /* jshint ignore:end */

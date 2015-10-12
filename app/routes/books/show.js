@@ -21,7 +21,7 @@ export default Ember.Route.extend(ScrollToTop, {
   },
 
   model: function(params) {
-    var books = this.store.all('book'),
+    var books = this.store.peekAll('book'),
         book = books.findBy('slug', params.book_slug);
 
     return book ? book : {};
