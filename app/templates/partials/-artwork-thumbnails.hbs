@@ -1,13 +1,9 @@
 <ul class="art-thumbs large-block-grid-4 medium-block-grid-3 small-block-grid-1">
   {{#each model.artwork as |art|}}
     <li {{action 'linkToArtModal' art}}>
-      {{!#link-to 'artwork.category.show' art.slug}}
-        <img {{bind-attr src='art.thumbnail.url' alt='art.title'}} />
-      {{!/link-to}}
+      <img {{bind-attr src='art.thumbnail.url' alt='art.title'}} />
       <p class="art-thumb-title">
-        {{!#link-to 'artwork.category.show' art.slug}}
-          <a href="#">{{art.title}}</a>
-        {{!/link-to}}
+        <a href="#">{{art.title}}</a>
       </p>
     </li>
   {{/each}}
