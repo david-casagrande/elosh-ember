@@ -168,6 +168,20 @@ define('elosh-client/controllers/application', ['exports', 'ember'], function (e
   });
 
 });
+define('elosh-client/controllers/array', ['exports', 'ember'], function (exports, Ember) {
+
+	'use strict';
+
+	exports['default'] = Ember['default'].Controller;
+
+});
+define('elosh-client/controllers/object', ['exports', 'ember'], function (exports, Ember) {
+
+	'use strict';
+
+	exports['default'] = Ember['default'].Controller;
+
+});
 define('elosh-client/initializers/active-model-adapter', ['exports', 'active-model-adapter', 'active-model-adapter/active-model-serializer'], function (exports, ActiveModelAdapter, ActiveModelSerializer) {
 
   'use strict';
@@ -3917,7 +3931,7 @@ catch(err) {
 if (runningTests) {
   require("elosh-client/tests/test-helper");
 } else {
-  require("elosh-client/app")["default"].create({"name":"elosh-client","version":"0.0.0+333a5e30"});
+  require("elosh-client/app")["default"].create({"name":"elosh-client","version":"0.0.0+af004035"});
 }
 
 /* jshint ignore:end */
