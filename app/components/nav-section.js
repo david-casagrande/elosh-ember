@@ -5,20 +5,24 @@ export default Ember.Component.extend({
   open: false,
 
   closedHeight: 20,
-  openHeight: 0,
 
-  attributeBindings: ['style'],
+  _setHeight: function() {
+    if(!this.$()) { return; }
 
-  style: Ember.computed('open', 'openHeight', {
-    get() {
-      var sectionHeight = this.get('open') ? this.get('openHeight') : this.get('closedHeight');
-      return new Ember.Handlebars.SafeString('height: ' + sectionHeight + 'px;');
+    var height = this.get('closedHeight');
+    if(this.get('open')) {
+      height = this.$().find('.links').outerHeight() + this.get('closedHeight');
     }
-  }),
+
+    this.$().css({ height: height });
+  },
 
   _setOpenHeight: Ember.on('didInsertElement', function() {
-    var height = this.$().find('.links').outerHeight();
-    this.set('openHeight', height + this.get('closedHeight'));
+    this._setHeight();
+  }),
+
+  _openObserver: Ember.observer('open', function() {
+    this._setHeight();
   }),
 
   _currentPathChange: Ember.observer('currentPath', function() {

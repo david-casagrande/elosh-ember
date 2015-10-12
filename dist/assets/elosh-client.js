@@ -115,20 +115,26 @@ define('elosh-client/components/nav-section', ['exports', 'ember'], function (ex
     open: false,
 
     closedHeight: 20,
-    openHeight: 0,
 
-    attributeBindings: ['style'],
-
-    style: Ember['default'].computed('open', 'openHeight', {
-      get: function get() {
-        var sectionHeight = this.get('open') ? this.get('openHeight') : this.get('closedHeight');
-        return new Ember['default'].Handlebars.SafeString('height: ' + sectionHeight + 'px;');
+    _setHeight: function _setHeight() {
+      if (!this.$()) {
+        return;
       }
-    }),
+
+      var height = this.get('closedHeight');
+      if (this.get('open')) {
+        height = this.$().find('.links').outerHeight() + this.get('closedHeight');
+      }
+
+      this.$().css({ height: height });
+    },
 
     _setOpenHeight: Ember['default'].on('didInsertElement', function () {
-      var height = this.$().find('.links').outerHeight();
-      this.set('openHeight', height + this.get('closedHeight'));
+      this._setHeight();
+    }),
+
+    _openObserver: Ember['default'].observer('open', function () {
+      this._setHeight();
     }),
 
     _currentPathChange: Ember['default'].observer('currentPath', function () {
