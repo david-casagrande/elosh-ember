@@ -925,12 +925,11 @@ define('elosh-client/routes/books/index', ['exports', 'ember', 'elosh-client/mix
   });
 
 });
-define('elosh-client/routes/books/show/book-page', ['exports', 'ember'], function (exports, Ember) {
+define('elosh-client/routes/books/show/book-page', ['exports', 'ember', 'elosh-client/mixins/routes/next-artwork', 'elosh-client/stores/image-data'], function (exports, Ember, NextArtwork, ImageDataStore) {
 
   'use strict';
 
-  exports['default'] = Ember['default'].Route.extend({
-
+  exports['default'] = Ember['default'].Route.extend(NextArtwork['default'], {
     model: function model(params) {
       var artwork = this.store.peekAll('artwork'),
           art = artwork.findBy('slug', params.book_page);
@@ -938,10 +937,21 @@ define('elosh-client/routes/books/show/book-page', ['exports', 'ember'], functio
       return art ? art : {};
     },
 
+    afterModel: function afterModel(model) {
+      var _this = this;
+
+      this.controllerFor('books.show').get('model.bookPages').then(function (bookPages) {
+        var nextArtIndex = _this._nextArtwork(model, bookPages);
+        var nextArt = bookPages.objectAt(nextArtIndex);
+        nextArt.get('image').then(function (img) {
+          return ImageDataStore['default'].get(img.get('url'));
+        });
+      });
+    },
+
     renderTemplate: function renderTemplate(controller) {
       this.send('openModal', { template: 'books.show.bookPage', controller: controller });
     }
-
   });
 
 });
@@ -4043,7 +4053,7 @@ catch(err) {
 if (runningTests) {
   require("elosh-client/tests/test-helper");
 } else {
-  require("elosh-client/app")["default"].create({"name":"elosh-client","version":"0.0.0+f379e668"});
+  require("elosh-client/app")["default"].create({"name":"elosh-client","version":"0.0.0+47ad42de"});
 }
 
 /* jshint ignore:end */
