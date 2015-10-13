@@ -806,12 +806,11 @@ define('elosh-client/routes/application', ['exports', 'ember'], function (export
   });
 
 });
-define('elosh-client/routes/artwork/category/show', ['exports', 'ember'], function (exports, Ember) {
+define('elosh-client/routes/artwork/category/show', ['exports', 'ember', 'elosh-client/mixins/routes/next-artwork', 'elosh-client/stores/image-data'], function (exports, Ember, NextArtwork, ImageDataStore) {
 
   'use strict';
 
-  exports['default'] = Ember['default'].Route.extend({
-
+  exports['default'] = Ember['default'].Route.extend(NextArtwork['default'], {
     model: function model(params) {
       var artwork = this.store.peekAll('artwork'),
           art = artwork.findBy('slug', params.artwork_slug);
@@ -819,10 +818,19 @@ define('elosh-client/routes/artwork/category/show', ['exports', 'ember'], functi
       return art ? art : {};
     },
 
+    afterModel: function afterModel(model) {
+      var allArtwork = this.controllerFor('artwork.category').get('model.artwork');
+      var nextArtIndex = this._nextArtwork(model, allArtwork);
+
+      var nextArt = allArtwork.objectAt(nextArtIndex);
+      nextArt.get('image').then(function (img) {
+        return ImageDataStore['default'].get(img.get('url'));
+      });
+    },
+
     renderTemplate: function renderTemplate(controller) {
       this.send('openModal', { template: 'artwork.category.show', controller: controller });
     }
-
   });
 
 });
