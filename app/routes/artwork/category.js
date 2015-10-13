@@ -1,7 +1,8 @@
 import Ember from 'ember';
 import ScrollToTop from '../../mixins/routes/scroll-to-top';
+import NextArtwork from '../../mixins/routes/next-artwork';
 
-export default Ember.Route.extend(ScrollToTop, {
+export default Ember.Route.extend(ScrollToTop, NextArtwork, {
 
   actions: {
     closeModal: function() {
@@ -34,23 +35,9 @@ export default Ember.Route.extend(ScrollToTop, {
   },
 
   _transitionToArt: function(art, previous = false) {
-    var allArtwork = this.get('controller.model.artwork'),
-        artIndex, nextArtIndex;
-
-    allArtwork.find(function(artwork, idx) {
-      var found = artwork.get('id') === art.get('id');
-      if(found) { artIndex = idx; }
-      return found;
-    });
-
-    if(previous) {
-      nextArtIndex = artIndex !== 0 ? (artIndex - 1) : allArtwork.get('length') - 1;
-    }
-    else {
-      nextArtIndex = artIndex < (allArtwork.get('length') - 1) ? (artIndex + 1) : 0;
-    }
+    var allArtwork = this.get('controller.model.artwork');
+    var nextArtIndex = this._nextArtwork(art, allArtwork, previous);
 
     this.transitionTo('artwork.category.show', allArtwork.objectAt(nextArtIndex).get('slug'));
   }
-
 });

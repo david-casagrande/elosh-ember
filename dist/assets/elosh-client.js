@@ -516,6 +516,35 @@ define('elosh-client/mixins/components/art-modal-loading-management', ['exports'
   });
 
 });
+define('elosh-client/mixins/routes/next-artwork', ['exports', 'ember'], function (exports, Ember) {
+
+  'use strict';
+
+  exports['default'] = Ember['default'].Mixin.create({
+    _nextArtwork: function _nextArtwork(art, allArtwork) {
+      var previous = arguments.length <= 2 || arguments[2] === undefined ? false : arguments[2];
+
+      var artIndex, nextArtIndex;
+
+      allArtwork.find(function (artwork, idx) {
+        var found = artwork.get('id') === art.get('id');
+        if (found) {
+          artIndex = idx;
+        }
+        return found;
+      });
+
+      if (previous) {
+        nextArtIndex = artIndex !== 0 ? artIndex - 1 : allArtwork.get('length') - 1;
+      } else {
+        nextArtIndex = artIndex < allArtwork.get('length') - 1 ? artIndex + 1 : 0;
+      }
+
+      return nextArtIndex;
+    }
+  });
+
+});
 define('elosh-client/mixins/routes/redirect-to-first-item', ['exports', 'ember'], function (exports, Ember) {
 
   'use strict';
@@ -797,11 +826,11 @@ define('elosh-client/routes/artwork/category/show', ['exports', 'ember'], functi
   });
 
 });
-define('elosh-client/routes/artwork/category', ['exports', 'ember', 'elosh-client/mixins/routes/scroll-to-top'], function (exports, Ember, ScrollToTop) {
+define('elosh-client/routes/artwork/category', ['exports', 'ember', 'elosh-client/mixins/routes/scroll-to-top', 'elosh-client/mixins/routes/next-artwork'], function (exports, Ember, ScrollToTop, NextArtwork) {
 
   'use strict';
 
-  exports['default'] = Ember['default'].Route.extend(ScrollToTop['default'], {
+  exports['default'] = Ember['default'].Route.extend(ScrollToTop['default'], NextArtwork['default'], {
 
     actions: {
       closeModal: function closeModal() {
@@ -836,27 +865,11 @@ define('elosh-client/routes/artwork/category', ['exports', 'ember', 'elosh-clien
     _transitionToArt: function _transitionToArt(art) {
       var previous = arguments.length <= 1 || arguments[1] === undefined ? false : arguments[1];
 
-      var allArtwork = this.get('controller.model.artwork'),
-          artIndex,
-          nextArtIndex;
-
-      allArtwork.find(function (artwork, idx) {
-        var found = artwork.get('id') === art.get('id');
-        if (found) {
-          artIndex = idx;
-        }
-        return found;
-      });
-
-      if (previous) {
-        nextArtIndex = artIndex !== 0 ? artIndex - 1 : allArtwork.get('length') - 1;
-      } else {
-        nextArtIndex = artIndex < allArtwork.get('length') - 1 ? artIndex + 1 : 0;
-      }
+      var allArtwork = this.get('controller.model.artwork');
+      var nextArtIndex = this._nextArtwork(art, allArtwork, previous);
 
       this.transitionTo('artwork.category.show', allArtwork.objectAt(nextArtIndex).get('slug'));
     }
-
   });
 
 });
@@ -3714,6 +3727,16 @@ define('elosh-client/tests/mixins/components/art-modal-loading-management.jshint
   QUnit.module('JSHint - mixins/components');
   QUnit.test('mixins/components/art-modal-loading-management.js should pass jshint', function(assert) { 
     assert.ok(true, 'mixins/components/art-modal-loading-management.js should pass jshint.'); 
+  });
+
+});
+define('elosh-client/tests/mixins/routes/next-artwork.jshint', function () {
+
+  'use strict';
+
+  QUnit.module('JSHint - mixins/routes');
+  QUnit.test('mixins/routes/next-artwork.js should pass jshint', function(assert) { 
+    assert.ok(true, 'mixins/routes/next-artwork.js should pass jshint.'); 
   });
 
 });
