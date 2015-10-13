@@ -421,13 +421,11 @@ define('elosh-client/mixins/components/art-modal-keyboard-navigation', ['exports
   });
 
 });
-define('elosh-client/mixins/components/art-modal-loading-management', ['exports', 'ember'], function (exports, Ember) {
+define('elosh-client/mixins/components/art-modal-loading-management', ['exports', 'ember', 'elosh-client/stores/image-data'], function (exports, Ember, ImageDataStore) {
 
   'use strict';
 
   /* global ProgressBar */
-
-  var ImageDataStore = {};
 
   exports['default'] = Ember['default'].Mixin.create({
 
@@ -475,50 +473,25 @@ define('elosh-client/mixins/components/art-modal-loading-management', ['exports'
     },
 
     _loadImage: function _loadImage() {
-      var artUrl = this.get('art.image.url');
-      if (typeof ImageDataStore[artUrl] !== 'undefined') {
-        this._setImageData(ImageDataStore[artUrl]);
-        this.get('progress').animate(1);
-      } else {
-        var self = this;
-        var oReq = new XMLHttpRequest();
-        oReq.onload = function () {
-          self._readFile(this.response);
-        };
-        oReq.onprogress = function (e) {
-          var p = parseFloat(e.loaded / e.total).toFixed(2);
-          var progress = self.get('progress');
+      var _this2 = this;
 
-          progress.stop();
-          progress.animate(p);
-        };
-        oReq.open('get', this.get('art.image.url'), true);
-        oReq.responseType = 'blob';
-        oReq.send();
-      }
+      var url = this.get('art.image.url');
+      ImageDataStore['default'].get(url, function (p) {
+        return _this2._setProgress(p);
+      }).then(function (dataUrl) {
+        return _this2._setImageData(dataUrl);
+      });
     },
 
-    _readFile: function _readFile(blob) {
-      var self = this;
-      var reader = new FileReader();
-      reader.onloadend = function () {
-        self._setImageData(reader.result);
-      };
-      reader.readAsDataURL(blob);
+    _setProgress: function _setProgress(p) {
+      var progress = this.get('progress');
+      progress.stop();
+      progress.animate(p);
     },
 
     _setImageData: function _setImageData(dataUrl) {
       this.set('imageDataUrl', dataUrl);
       this._setImageLoaded();
-      this._cacheImageData(dataUrl);
-    },
-
-    _cacheImageData: function _cacheImageData(dataUrl) {
-      var artUrl = this.get('art.image.url');
-      if (typeof ImageDataStore[artUrl] !== 'undefined') {
-        return;
-      }
-      ImageDataStore[artUrl] = dataUrl;
     },
 
     _setImageLoaded: function _setImageLoaded() {
@@ -1084,6 +1057,70 @@ define('elosh-client/serializers/book', ['exports', 'elosh-client/serializers/ap
     }
 
   });
+
+});
+define('elosh-client/stores/image-data', ['exports', 'ember'], function (exports, Ember) {
+
+  'use strict';
+
+  var ImageDataStore = {};
+
+  function get(url, progressCallback) {
+    if (typeof ImageDataStore[url] !== 'undefined') {
+      if (progressCallback) {
+        progressCallback(1);
+      }
+      return new Ember['default'].RSVP.Promise(function (resolve) {
+        return resolve(ImageDataStore[url]);
+      });
+    }
+
+    return request(url, progressCallback).then(function (response) {
+      return readFile(response);
+    }).then(function (dataUrl) {
+      return cacheFile(url, dataUrl);
+    });
+  }
+
+  function request(url, progressCallback) {
+    return new Ember['default'].RSVP.Promise(function (resolve) {
+      var oReq = new XMLHttpRequest();
+
+      oReq.onload = function (response) {
+        resolve(this.response);
+      };
+
+      if (progressCallback) {
+        oReq.onprogress = function (e) {
+          var p = parseFloat(e.loaded / e.total).toFixed(2);
+          progressCallback(p);
+        };
+      }
+
+      oReq.open('get', url, true);
+      oReq.responseType = 'blob';
+      oReq.send();
+    });
+  }
+
+  function readFile(blob) {
+    return new Ember['default'].RSVP.Promise(function (resolve) {
+      var reader = new FileReader();
+      reader.onloadend = function () {
+        resolve(reader.result);
+      };
+      reader.readAsDataURL(blob);
+    });
+  }
+
+  function cacheFile(url, dataUrl) {
+    ImageDataStore[url] = dataUrl;
+    return ImageDataStore[url];
+  }
+
+  exports['default'] = {
+    get: get
+  };
 
 });
 define('elosh-client/templates/about', ['exports'], function (exports) {
@@ -3920,6 +3957,16 @@ define('elosh-client/tests/serializers/book.jshint', function () {
   });
 
 });
+define('elosh-client/tests/stores/image-data.jshint', function () {
+
+  'use strict';
+
+  QUnit.module('JSHint - stores');
+  QUnit.test('stores/image-data.js should pass jshint', function(assert) { 
+    assert.ok(false, 'stores/image-data.js should pass jshint.\nstores/image-data.js: line 20, col 28, \'response\' is defined but never used.\n\n1 error'); 
+  });
+
+});
 define('elosh-client/tests/test-helper', ['elosh-client/tests/helpers/resolver', 'ember-qunit'], function (resolver, ember_qunit) {
 
 	'use strict';
@@ -3965,7 +4012,7 @@ catch(err) {
 if (runningTests) {
   require("elosh-client/tests/test-helper");
 } else {
-  require("elosh-client/app")["default"].create({"name":"elosh-client","version":"0.0.0+badf82c6"});
+  require("elosh-client/app")["default"].create({"name":"elosh-client","version":"0.0.0+f379e668"});
 }
 
 /* jshint ignore:end */

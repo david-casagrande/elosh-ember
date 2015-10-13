@@ -1,8 +1,7 @@
 /* global ProgressBar */
 
 import Ember from 'ember';
-
-var ImageDataStore = {};
+import ImageDataStore from '../../stores/image-data';
 
 export default Ember.Mixin.create({
 
@@ -44,49 +43,19 @@ export default Ember.Mixin.create({
   },
 
   _loadImage: function() {
-    var artUrl = this.get('art.image.url');
-    if(typeof ImageDataStore[artUrl] !== 'undefined') {
-      this._setImageData(ImageDataStore[artUrl]);
-      this.get('progress').animate(1);
-    }
-    else {
-      var self = this;
-      var oReq = new XMLHttpRequest();
-      oReq.onload = function() {
-        self._readFile(this.response);
-      };
-      oReq.onprogress = function(e) {
-        var p = parseFloat(e.loaded / e.total).toFixed(2);
-        var progress = self.get('progress');
-
-        progress.stop();
-        progress.animate(p);
-      };
-      oReq.open('get', this.get('art.image.url'), true);
-      oReq.responseType = 'blob';
-      oReq.send();
-    }
+    var url = this.get('art.image.url');
+    ImageDataStore.get(url, (p) => this._setProgress(p)).then((dataUrl) => this._setImageData(dataUrl));
   },
 
-  _readFile: function(blob) {
-    var self = this;
-    var reader  = new FileReader();
-    reader.onloadend = function () {
-      self._setImageData(reader.result);
-    };
-    reader.readAsDataURL(blob);
+  _setProgress: function(p) {
+    var progress = this.get('progress');
+    progress.stop();
+    progress.animate(p);
   },
 
   _setImageData: function(dataUrl) {
     this.set('imageDataUrl', dataUrl);
     this._setImageLoaded();
-    this._cacheImageData(dataUrl);
-  },
-
-  _cacheImageData: function(dataUrl) {
-    var artUrl = this.get('art.image.url');
-    if(typeof ImageDataStore[artUrl] !== 'undefined') { return; }
-    ImageDataStore[artUrl] = dataUrl;
   },
 
   _setImageLoaded: function() {
