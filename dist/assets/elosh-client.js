@@ -191,6 +191,20 @@ define('elosh-client/controllers/array', ['exports', 'ember'], function (exports
 	exports['default'] = Ember['default'].Controller;
 
 });
+define('elosh-client/controllers/artwork/category', ['exports', 'ember'], function (exports, Ember) {
+
+	'use strict';
+
+	exports['default'] = Ember['default'].Controller;
+
+});
+define('elosh-client/controllers/books/show', ['exports', 'ember'], function (exports, Ember) {
+
+	'use strict';
+
+	exports['default'] = Ember['default'].Controller;
+
+});
 define('elosh-client/controllers/object', ['exports', 'ember'], function (exports, Ember) {
 
 	'use strict';
@@ -819,9 +833,17 @@ define('elosh-client/routes/artwork/category/show', ['exports', 'ember', 'elosh-
     },
 
     afterModel: function afterModel(model) {
-      var allArtwork = this.controllerFor('artwork.category').get('model.artwork');
-      var nextArtIndex = this._nextArtwork(model, allArtwork);
+      var controller = this.controllerFor('artwork.category');
+      if (!controller) {
+        return;
+      }
 
+      var allArtwork = controller.get('model.artwork');
+      if (!allArtwork) {
+        return;
+      }
+
+      var nextArtIndex = this._nextArtwork(model, allArtwork);
       var nextArt = allArtwork.objectAt(nextArtIndex);
       nextArt.get('image').then(function (img) {
         return ImageDataStore['default'].get(img.get('url'));
@@ -940,9 +962,23 @@ define('elosh-client/routes/books/show/book-page', ['exports', 'ember', 'elosh-c
     afterModel: function afterModel(model) {
       var _this = this;
 
-      this.controllerFor('books.show').get('model.bookPages').then(function (bookPages) {
+      var controller = this.controllerFor('books.show');
+      if (!controller) {
+        return;
+      }
+
+      var _model = controller.get('model.bookPages');
+      if (!_model) {
+        return;
+      }
+
+      _model.then(function (bookPages) {
+        if (!bookPages) {
+          return;
+        }
         var nextArtIndex = _this._nextArtwork(model, bookPages);
         var nextArt = bookPages.objectAt(nextArtIndex);
+
         nextArt.get('image').then(function (img) {
           return ImageDataStore['default'].get(img.get('url'));
         });
@@ -3651,6 +3687,26 @@ define('elosh-client/tests/controllers/application.jshint', function () {
   });
 
 });
+define('elosh-client/tests/controllers/artwork/category.jshint', function () {
+
+  'use strict';
+
+  QUnit.module('JSHint - controllers/artwork');
+  QUnit.test('controllers/artwork/category.js should pass jshint', function(assert) { 
+    assert.ok(true, 'controllers/artwork/category.js should pass jshint.'); 
+  });
+
+});
+define('elosh-client/tests/controllers/books/show.jshint', function () {
+
+  'use strict';
+
+  QUnit.module('JSHint - controllers/books');
+  QUnit.test('controllers/books/show.js should pass jshint', function(assert) { 
+    assert.ok(true, 'controllers/books/show.js should pass jshint.'); 
+  });
+
+});
 define('elosh-client/tests/helpers/resolver', ['exports', 'ember/resolver', 'elosh-client/config/environment'], function (exports, Resolver, config) {
 
   'use strict';
@@ -4053,7 +4109,7 @@ catch(err) {
 if (runningTests) {
   require("elosh-client/tests/test-helper");
 } else {
-  require("elosh-client/app")["default"].create({"name":"elosh-client","version":"0.0.0+47ad42de"});
+  require("elosh-client/app")["default"].create({"name":"elosh-client","version":"0.0.0+e5b31049"});
 }
 
 /* jshint ignore:end */

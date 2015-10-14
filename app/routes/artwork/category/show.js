@@ -11,9 +11,13 @@ export default Ember.Route.extend(NextArtwork, {
   },
 
   afterModel: function(model) {
-    var allArtwork = this.controllerFor('artwork.category').get('model.artwork');
-    var nextArtIndex = this._nextArtwork(model, allArtwork);
+    var controller = this.controllerFor('artwork.category');
+    if(!controller) { return; }
 
+    var allArtwork = controller.get('model.artwork');
+    if(!allArtwork) { return; }
+
+    var nextArtIndex = this._nextArtwork(model, allArtwork);
     var nextArt = allArtwork.objectAt(nextArtIndex);
     nextArt.get('image').then((img) => ImageDataStore.get(img.get('url')));
   },

@@ -11,10 +11,18 @@ export default Ember.Route.extend(NextArtwork, {
   },
 
   afterModel: function(model) {
-    this.controllerFor('books.show').get('model.bookPages')
+    var controller = this.controllerFor('books.show');
+    if(!controller) { return; }
+
+    var _model = controller.get('model.bookPages');
+    if(!_model) { return; }
+
+    _model
       .then((bookPages) => {
+        if(!bookPages) { return; }
         var nextArtIndex = this._nextArtwork(model, bookPages);
         var nextArt = bookPages.objectAt(nextArtIndex);
+
         nextArt.get('image').then((img) => ImageDataStore.get(img.get('url')));
       });
   },
