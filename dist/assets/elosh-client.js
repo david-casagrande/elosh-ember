@@ -352,9 +352,18 @@ define('elosh-client/mixins/components/art-modal-height-management', ['exports',
   exports['default'] = Ember['default'].Mixin.create({
     artModalBindingId: null,
 
-    setupHeightManagement: Ember['default'].on('didInsertElement', function () {
-      this._setArtModalBindingId();
-      this._setArtModalManagement();
+    setupHeightManagement: Ember['default'].on('didReceiveAttrs', function () {
+      var _this = this;
+
+      Ember['default'].run.schedule('afterRender', function () {
+        if (_this.get('artModalBindingId')) {
+          Ember['default'].$(window).off(_this.get('artModalBindingId'));
+        } else {
+          _this._setArtModalBindingId();
+        }
+
+        _this._setArtModalManagement();
+      });
     }),
 
     _setArtModalBindingId: function _setArtModalBindingId() {
@@ -363,12 +372,12 @@ define('elosh-client/mixins/components/art-modal-height-management', ['exports',
     },
 
     _setArtModalManagement: function _setArtModalManagement() {
-      var _this = this;
+      var _this2 = this;
 
       var win = Ember['default'].$(window);
       this._setHeight(win);
       win.on(this.get('artModalBindingId'), function () {
-        _this._setHeight(win);
+        _this2._setHeight(win);
       });
     },
 
@@ -4109,7 +4118,7 @@ catch(err) {
 if (runningTests) {
   require("elosh-client/tests/test-helper");
 } else {
-  require("elosh-client/app")["default"].create({"name":"elosh-client","version":"0.0.0+e5b31049"});
+  require("elosh-client/app")["default"].create({"name":"elosh-client","version":"0.0.0+c667cd80"});
 }
 
 /* jshint ignore:end */

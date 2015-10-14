@@ -3,9 +3,16 @@ import Ember from 'ember';
 export default Ember.Mixin.create({
   artModalBindingId: null,
 
-  setupHeightManagement: Ember.on('didInsertElement', function() {
-    this._setArtModalBindingId();
-    this._setArtModalManagement();
+  setupHeightManagement: Ember.on('didReceiveAttrs', function() {
+    Ember.run.schedule('afterRender', () => {
+      if(this.get('artModalBindingId')) {
+        Ember.$(window).off(this.get('artModalBindingId'));
+      } else {
+        this._setArtModalBindingId();
+      }
+
+      this._setArtModalManagement();
+    });
   }),
 
   _setArtModalBindingId: function() {
